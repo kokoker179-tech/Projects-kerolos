@@ -250,9 +250,14 @@ function ProjectCard({ project }: { project: Project }) {
               <img 
                 src={project.imageUrl} 
                 alt={project.title} 
-                className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" 
+                className="w-full h-full object-cover opacity-0 transition-opacity duration-500 group-hover:opacity-100" 
                 referrerPolicy="no-referrer" 
                 loading="eager"
+                decoding="async"
+                onLoad={(e) => {
+                  e.currentTarget.classList.remove('opacity-0');
+                  e.currentTarget.classList.add('opacity-80');
+                }}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-[#0F1117] to-transparent opacity-60"></div>
             </div>
