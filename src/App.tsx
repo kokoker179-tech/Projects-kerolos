@@ -311,7 +311,7 @@ function ProjectCard({ project }: { project: Project }) {
               <div className="flex flex-wrap items-center gap-3 mb-4">
                 <h3 className="text-2xl md:text-4xl font-bold tracking-tight text-[#ECEFF4] group-hover:text-[#61AFEF] transition-colors">{project.title}</h3>
                 {project.duration && (
-                  <span className="text-[10px] md:text-xs text-[#C678DD] opacity-80 px-3 py-1 border border-[#C678DD]/20 rounded-full uppercase font-bold whitespace-nowrap">
+                  <span className="text-xs md:text-sm text-[#C678DD] opacity-80 px-3 py-1 border border-[#C678DD]/20 rounded-full uppercase font-bold whitespace-nowrap">
                     DURATION: {project.duration}
                   </span>
                 )}
