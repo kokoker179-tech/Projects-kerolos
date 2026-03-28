@@ -28,7 +28,7 @@ import {
 } from 'lucide-react';
 import { cn } from './lib/utils';
 import { db, auth, signInWithGoogle, logOut } from './firebase';
-import { collection, onSnapshot, doc, setDoc, deleteDoc, updateDoc, getDocFromServer } from 'firebase/firestore';
+import { collection, onSnapshot, doc, setDoc, deleteDoc, updateDoc, getDocFromServer, addDoc } from 'firebase/firestore';
 import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 
 // --- Error Handling Spec ---
@@ -139,6 +139,32 @@ const useProjects = () => {
   };
 
   return { projects, loading, addProject, updateProject, deleteProject };
+};
+
+// --- Contacts Hook ---
+const useContacts = () => {
+  const [contacts, setContacts] = useState<ContactMessage[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const path = 'contacts';
+    const unsubscribe = onSnapshot(collection(db, path), (snapshot) => {
+      const loadedContacts: ContactMessage[] = [];
+      snapshot.forEach((doc) => {
+        loadedContacts.push({ id: doc.id, ...doc.data() } as ContactMessage);
+      });
+      loadedContacts.sort((a, b) => b.createdAt - a.createdAt);
+      setContacts(loadedContacts);
+      setLoading(false);
+    }, (error) => {
+      setLoading(false);
+      handleFirestoreError(error, OperationType.LIST, path);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  return { contacts, loading };
 };
 
 // --- Components ---
@@ -487,11 +513,21 @@ const About = () => {
 
 const Contact = () => {
   const [sent, setSent] = useState(false);
+  const [formData, setFormData] = useState({ name: '', email: '', message: '' });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSent(true);
-    setTimeout(() => setSent(false), 5000);
+    try {
+      await addDoc(collection(db, 'contacts'), {
+        ...formData,
+        createdAt: Date.now()
+      });
+      setSent(true);
+      setFormData({ name: '', email: '', message: '' });
+      setTimeout(() => setSent(false), 5000);
+    } catch (error) {
+      handleFirestoreError(error, OperationType.CREATE, 'contacts');
+    }
   };
 
   return (
@@ -530,16 +566,16 @@ const Contact = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <label className="text-[10px] uppercase tracking-widest text-[#ABB2BF]">Name</label>
-                  <input required type="text" className="w-full bg-[#0F1117] border border-[#ABB2BF]/20 rounded p-3 text-sm focus:border-[#61AFEF] outline-none transition-colors" placeholder="IDENTIFY_YOURSELF" />
+                  <input required type="text" className="w-full bg-[#0F1117] border border-[#ABB2BF]/20 rounded p-3 text-sm focus:border-[#61AFEF] outline-none transition-colors" placeholder="IDENTIFY_YOURSELF" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} />
                 </div>
                 <div className="space-y-2">
                   <label className="text-[10px] uppercase tracking-widest text-[#ABB2BF]">Email</label>
-                  <input required type="email" className="w-full bg-[#0F1117] border border-[#ABB2BF]/20 rounded p-3 text-sm focus:border-[#61AFEF] outline-none transition-colors" placeholder="RETURN_ADDRESS" />
+                  <input required type="email" className="w-full bg-[#0F1117] border border-[#ABB2BF]/20 rounded p-3 text-sm focus:border-[#61AFEF] outline-none transition-colors" placeholder="RETURN_ADDRESS" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} />
                 </div>
               </div>
               <div className="space-y-2">
                 <label className="text-[10px] uppercase tracking-widest text-[#ABB2BF]">Message</label>
-                <textarea required rows={5} className="w-full bg-[#0F1117] border border-[#ABB2BF]/20 rounded p-3 text-sm focus:border-[#61AFEF] outline-none transition-colors resize-none" placeholder="TRANSMIT_DATA..."></textarea>
+                <textarea required rows={5} className="w-full bg-[#0F1117] border border-[#ABB2BF]/20 rounded p-3 text-sm focus:border-[#61AFEF] outline-none transition-colors resize-none" placeholder="TRANSMIT_DATA..." value={formData.message} onChange={e => setFormData({...formData, message: e.target.value})}></textarea>
               </div>
               <button type="submit" className="w-full py-4 bg-[#61AFEF] text-black font-bold uppercase tracking-widest hover:bg-[#C678DD] transition-all rounded flex items-center justify-center gap-3 group">
                 {sent ? (
@@ -593,7 +629,9 @@ const Portfolio = () => {
 };
 
 const Admin = () => {
-  const { projects, loading, addProject, updateProject, deleteProject } = useProjects();
+  const { projects, loading: projectsLoading, addProject, updateProject, deleteProject } = useProjects();
+  const { contacts, loading: contactsLoading } = useContacts();
+  const [activeTab, setActiveTab] = useState<'projects' | 'contacts'>('projects');
   const [isEditing, setIsEditing] = useState<string | null>(null);
   const [formData, setFormData] = useState<Partial<Project>>({
     title: '',
@@ -624,7 +662,7 @@ const Admin = () => {
     setFormData(project);
   };
 
-  if (loading) return null;
+  if (projectsLoading || contactsLoading) return null;
 
   return (
     <div className="min-h-screen bg-[#0F1117] text-[#ABB2BF] p-4 md:p-8 font-mono">
@@ -633,162 +671,186 @@ const Admin = () => {
           <h1 className="text-xl md:text-2xl flex items-center gap-2 text-[#ECEFF4]">
             <Settings className="animate-spin-slow text-[#61AFEF]" /> ADMIN_DASHBOARD
           </h1>
-          <Link to="/" className="text-[10px] md:text-xs hover:text-[#61AFEF] opacity-60 flex items-center gap-2">
-            <ExternalLink size={12} /> BACK_TO_SITE
-          </Link>
+          <div className="flex gap-4">
+            <button onClick={() => setActiveTab('projects')} className={cn("text-[10px] md:text-xs hover:text-[#61AFEF]", activeTab === 'projects' && "text-[#61AFEF]")}>PROJECTS</button>
+            <button onClick={() => setActiveTab('contacts')} className={cn("text-[10px] md:text-xs hover:text-[#61AFEF]", activeTab === 'contacts' && "text-[#61AFEF]")}>CONTACTS</button>
+            <Link to="/" className="text-[10px] md:text-xs hover:text-[#61AFEF] opacity-60 flex items-center gap-2">
+              <ExternalLink size={12} /> BACK_TO_SITE
+            </Link>
+          </div>
         </header>
 
-        {/* Form Section */}
-        <section className="bg-[#161B22]/40 p-6 md:p-8 rounded-xl mb-8 md:mb-12 border border-[#ABB2BF]/10 backdrop-blur-sm">
-          <h2 className="text-[10px] md:text-sm mb-6 opacity-60 uppercase tracking-widest text-[#C678DD]">
-            {isEditing ? 'EDIT_PROJECT_ENTRY' : 'CREATE_NEW_ENTRY'}
-          </h2>
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="space-y-2">
-              <label className="text-[10px] uppercase opacity-40">Project Title</label>
-              <input 
-                type="text" 
-                placeholder="e.g. Neural Interface" 
-                className="w-full bg-[#0F1117]/50 border border-[#ABB2BF]/20 rounded p-3 focus:border-[#61AFEF] outline-none transition-colors text-sm"
-                value={formData.title}
-                onChange={e => setFormData({...formData, title: e.target.value})}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-[10px] uppercase opacity-40">Description</label>
-              <textarea 
-                placeholder="Detailed project breakdown..." 
-                className="w-full bg-[#0F1117]/50 border border-[#ABB2BF]/20 rounded p-3 focus:border-[#61AFEF] outline-none transition-colors h-32 resize-none text-sm"
-                value={formData.description}
-                onChange={e => setFormData({...formData, description: e.target.value})}
-                required
-              />
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <label className="text-[10px] uppercase opacity-40">Github Source</label>
-                <input 
-                  type="url" 
-                  placeholder="https://github.com/..." 
-                  className="w-full bg-[#0F1117]/50 border border-[#ABB2BF]/20 rounded p-3 focus:border-[#61AFEF] outline-none transition-colors text-sm"
-                  value={formData.githubLink}
-                  onChange={e => setFormData({...formData, githubLink: e.target.value})}
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-[10px] uppercase opacity-40">Live Deployment</label>
-                <input 
-                  type="url" 
-                  placeholder="https://demo.app/..." 
-                  className="w-full bg-[#0F1117]/50 border border-[#ABB2BF]/20 rounded p-3 focus:border-[#61AFEF] outline-none transition-colors text-sm"
-                  value={formData.liveLink}
-                  onChange={e => {
-                    const url = e.target.value;
-                    setFormData({
-                      ...formData, 
-                      liveLink: url,
-                      imageUrl: url ? `https://image.thum.io/get/width/800/crop/600/${url}` : formData.imageUrl
-                    });
-                  }}
-                />
-              </div>
-            </div>
+        {activeTab === 'projects' ? (
+          <>
+            {/* Form Section */}
+            <section className="bg-[#161B22]/40 p-6 md:p-8 rounded-xl mb-8 md:mb-12 border border-[#ABB2BF]/10 backdrop-blur-sm">
+              <h2 className="text-[10px] md:text-sm mb-6 opacity-60 uppercase tracking-widest text-[#C678DD]">
+                {isEditing ? 'EDIT_PROJECT_ENTRY' : 'CREATE_NEW_ENTRY'}
+              </h2>
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="space-y-2">
+                  <label className="text-[10px] uppercase opacity-40">Project Title</label>
+                  <input 
+                    type="text" 
+                    placeholder="e.g. Neural Interface" 
+                    className="w-full bg-[#0F1117]/50 border border-[#ABB2BF]/20 rounded p-3 focus:border-[#61AFEF] outline-none transition-colors text-sm"
+                    value={formData.title}
+                    onChange={e => setFormData({...formData, title: e.target.value})}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] uppercase opacity-40">Description</label>
+                  <textarea 
+                    placeholder="Detailed project breakdown..." 
+                    className="w-full bg-[#0F1117]/50 border border-[#ABB2BF]/20 rounded p-3 focus:border-[#61AFEF] outline-none transition-colors h-32 resize-none text-sm"
+                    value={formData.description}
+                    onChange={e => setFormData({...formData, description: e.target.value})}
+                    required
+                  />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <label className="text-[10px] uppercase opacity-40">Github Source</label>
+                    <input 
+                      type="url" 
+                      placeholder="https://github.com/..." 
+                      className="w-full bg-[#0F1117]/50 border border-[#ABB2BF]/20 rounded p-3 focus:border-[#61AFEF] outline-none transition-colors text-sm"
+                      value={formData.githubLink}
+                      onChange={e => setFormData({...formData, githubLink: e.target.value})}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] uppercase opacity-40">Live Deployment</label>
+                    <input 
+                      type="url" 
+                      placeholder="https://demo.app/..." 
+                      className="w-full bg-[#0F1117]/50 border border-[#ABB2BF]/20 rounded p-3 focus:border-[#61AFEF] outline-none transition-colors text-sm"
+                      value={formData.liveLink}
+                      onChange={e => {
+                        const url = e.target.value;
+                        setFormData({
+                          ...formData, 
+                          liveLink: url,
+                          imageUrl: url ? `https://image.thum.io/get/width/800/crop/600/${url}` : formData.imageUrl
+                        });
+                      }}
+                    />
+                  </div>
+                </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <label className="text-[10px] uppercase opacity-40">Project Duration</label>
-                <input 
-                  type="text" 
-                  placeholder="e.g. 3 Months, 2 Weeks..." 
-                  className="w-full bg-[#0F1117]/50 border border-[#ABB2BF]/20 rounded p-3 focus:border-[#61AFEF] outline-none transition-colors text-sm"
-                  value={formData.duration || ''}
-                  onChange={e => setFormData({...formData, duration: e.target.value})}
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-[10px] uppercase opacity-40">Image URL (Auto-generated)</label>
-                <input 
-                  type="url" 
-                  placeholder="https://..." 
-                  className="w-full bg-[#0F1117]/50 border border-[#ABB2BF]/20 rounded p-3 focus:border-[#61AFEF] outline-none transition-colors text-sm"
-                  value={formData.imageUrl || ''}
-                  onChange={e => setFormData({...formData, imageUrl: e.target.value})}
-                />
-              </div>
-            </div>
-            
-            <div className="space-y-3">
-              <label className="text-[10px] uppercase opacity-40">Technologies / Tags</label>
-              <div className="flex gap-2">
-                <input 
-                  type="text" 
-                  placeholder="Add tag and press Enter" 
-                  className="flex-1 bg-[#0F1117]/50 border border-[#ABB2BF]/20 rounded p-3 focus:border-[#61AFEF] outline-none transition-colors text-sm"
-                  value={tagInput}
-                  onChange={e => setTagInput(e.target.value)}
-                  onKeyDown={e => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      if (tagInput.trim()) {
-                        setFormData({...formData, tags: [...(formData.tags || []), tagInput.trim()]});
-                        setTagInput('');
-                      }
-                    }
-                  }}
-                />
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {formData.tags?.map((tag, i) => (
-                  <span key={i} className="text-[9px] bg-[#61AFEF]/10 text-[#61AFEF] border border-[#61AFEF]/20 px-2 py-1 rounded flex items-center gap-2">
-                    {tag.toUpperCase()} <X size={10} className="cursor-pointer hover:text-white" onClick={() => setFormData({...formData, tags: formData.tags?.filter((_, idx) => idx !== i)})} />
-                  </span>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <label className="text-[10px] uppercase opacity-40">Project Duration</label>
+                    <input 
+                      type="text" 
+                      placeholder="e.g. 3 Months, 2 Weeks..." 
+                      className="w-full bg-[#0F1117]/50 border border-[#ABB2BF]/20 rounded p-3 focus:border-[#61AFEF] outline-none transition-colors text-sm"
+                      value={formData.duration || ''}
+                      onChange={e => setFormData({...formData, duration: e.target.value})}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] uppercase opacity-40">Image URL (Auto-generated)</label>
+                    <input 
+                      type="url" 
+                      placeholder="https://..." 
+                      className="w-full bg-[#0F1117]/50 border border-[#ABB2BF]/20 rounded p-3 focus:border-[#61AFEF] outline-none transition-colors text-sm"
+                      value={formData.imageUrl || ''}
+                      onChange={e => setFormData({...formData, imageUrl: e.target.value})}
+                    />
+                  </div>
+                </div>
+                
+                <div className="space-y-3">
+                  <label className="text-[10px] uppercase opacity-40">Technologies / Tags</label>
+                  <div className="flex gap-2">
+                    <input 
+                      type="text" 
+                      placeholder="Add tag and press Enter" 
+                      className="flex-1 bg-[#0F1117]/50 border border-[#ABB2BF]/20 rounded p-3 focus:border-[#61AFEF] outline-none transition-colors text-sm"
+                      value={tagInput}
+                      onChange={e => setTagInput(e.target.value)}
+                      onKeyDown={e => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          if (tagInput.trim()) {
+                            setFormData({...formData, tags: [...(formData.tags || []), tagInput.trim()]});
+                            setTagInput('');
+                          }
+                        }
+                      }}
+                    />
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {formData.tags?.map((tag, i) => (
+                      <span key={i} className="text-[9px] bg-[#61AFEF]/10 text-[#61AFEF] border border-[#61AFEF]/20 px-2 py-1 rounded flex items-center gap-2">
+                        {tag.toUpperCase()} <X size={10} className="cursor-pointer hover:text-white" onClick={() => setFormData({...formData, tags: formData.tags?.filter((_, idx) => idx !== i)})} />
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-4 pt-4">
+                  <button type="submit" className="flex-1 bg-[#61AFEF] text-black py-3 rounded font-bold hover:bg-[#61AFEF]/90 transition-all flex items-center justify-center gap-2">
+                    <Save size={18} /> {isEditing ? 'UPDATE_RECORD' : 'COMMIT_CHANGES'}
+                  </button>
+                  {isEditing && (
+                    <button 
+                      type="button" 
+                      onClick={() => {
+                        setIsEditing(null);
+                        setFormData({ title: '', description: '', githubLink: '', liveLink: '', imageUrl: '', duration: '', tags: [] });
+                      }}
+                      className="px-8 py-3 border border-[#ABB2BF]/20 rounded hover:bg-[#ABB2BF]/5 transition-colors text-sm"
+                    >
+                      ABORT
+                    </button>
+                  )}
+                </div>
+              </form>
+            </section>
+
+            {/* List Section */}
+            <section>
+              <h2 className="text-[10px] md:text-sm mb-6 opacity-60 uppercase tracking-widest text-[#98C379]">DATABASE_RECORDS</h2>
+              <div className="space-y-3">
+                {projects.map(p => (
+                  <div key={p.id} className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 border border-[#ABB2BF]/10 rounded-lg hover:bg-[#161B22]/40 transition-all gap-4">
+                    <div className="space-y-1">
+                      <h3 className="text-sm font-bold text-[#ECEFF4]">{p.title}</h3>
+                      <p className="text-[9px] opacity-40 font-mono">ID: {p.id.slice(0, 8)} // DATE: {new Date(p.createdAt).toLocaleDateString()}</p>
+                    </div>
+                    <div className="flex gap-2 w-full sm:w-auto justify-end">
+                      <button onClick={() => handleEdit(p)} className="p-2 border border-[#ABB2BF]/10 rounded hover:bg-[#61AFEF]/10 hover:text-[#61AFEF] transition-all">
+                        <Edit3 size={16} />
+                      </button>
+                      <button onClick={() => deleteProject(p.id)} className="p-2 border border-[#ABB2BF]/10 rounded hover:bg-red-500/10 hover:text-red-400 transition-all">
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </div>
                 ))}
               </div>
-            </div>
-
-            <div className="flex flex-col sm:flex-row gap-4 pt-4">
-              <button type="submit" className="flex-1 bg-[#61AFEF] text-black py-3 rounded font-bold hover:bg-[#61AFEF]/90 transition-all flex items-center justify-center gap-2">
-                <Save size={18} /> {isEditing ? 'UPDATE_RECORD' : 'COMMIT_CHANGES'}
-              </button>
-              {isEditing && (
-                <button 
-                  type="button" 
-                  onClick={() => {
-                    setIsEditing(null);
-                    setFormData({ title: '', description: '', githubLink: '', liveLink: '', imageUrl: '', duration: '', tags: [] });
-                  }}
-                  className="px-8 py-3 border border-[#ABB2BF]/20 rounded hover:bg-[#ABB2BF]/5 transition-colors text-sm"
-                >
-                  ABORT
-                </button>
-              )}
-            </div>
-          </form>
-        </section>
-
-        {/* List Section */}
-        <section>
-          <h2 className="text-[10px] md:text-sm mb-6 opacity-60 uppercase tracking-widest text-[#98C379]">DATABASE_RECORDS</h2>
-          <div className="space-y-3">
-            {projects.map(p => (
-              <div key={p.id} className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 border border-[#ABB2BF]/10 rounded-lg hover:bg-[#161B22]/40 transition-all gap-4">
-                <div className="space-y-1">
-                  <h3 className="text-sm font-bold text-[#ECEFF4]">{p.title}</h3>
-                  <p className="text-[9px] opacity-40 font-mono">ID: {p.id.slice(0, 8)} // DATE: {new Date(p.createdAt).toLocaleDateString()}</p>
+            </section>
+          </>
+        ) : (
+          <section>
+            <h2 className="text-[10px] md:text-sm mb-6 opacity-60 uppercase tracking-widest text-[#98C379]">CONTACT_MESSAGES</h2>
+            <div className="space-y-3">
+              {contacts.map(c => (
+                <div key={c.id} className="p-4 border border-[#ABB2BF]/10 rounded-lg bg-[#161B22]/40 gap-4">
+                  <div className="flex justify-between items-start mb-2">
+                    <h3 className="text-sm font-bold text-[#ECEFF4]">{c.name}</h3>
+                    <p className="text-[9px] opacity-40 font-mono">{new Date(c.createdAt).toLocaleString()}</p>
+                  </div>
+                  <p className="text-xs text-[#61AFEF] mb-2">{c.email}</p>
+                  <p className="text-sm text-[#ABB2BF]">{c.message}</p>
                 </div>
-                <div className="flex gap-2 w-full sm:w-auto justify-end">
-                  <button onClick={() => handleEdit(p)} className="p-2 border border-[#ABB2BF]/10 rounded hover:bg-[#61AFEF]/10 hover:text-[#61AFEF] transition-all">
-                    <Edit3 size={16} />
-                  </button>
-                  <button onClick={() => deleteProject(p.id)} className="p-2 border border-[#ABB2BF]/10 rounded hover:bg-red-500/10 hover:text-red-400 transition-all">
-                    <Trash2 size={16} />
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
+              ))}
+            </div>
+          </section>
+        )}
       </div>
     </div>
   );

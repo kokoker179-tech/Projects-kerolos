@@ -9,3 +9,11 @@ export interface Project {
   tags?: string[];
   createdAt: number;
 }
+
+export interface ContactMessage {
+  id: string;
+  name: string;
+  email: string;
+  message: string;
+  createdAt: number;
+}

@@ -42,6 +42,30 @@
         }
       },
       "required": ["title", "description", "createdAt"]
+    },
+    "ContactMessage": {
+      "title": "ContactMessage",
+      "description": "A contact message from a visitor.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "The name of the sender."
+        },
+        "email": {
+          "type": "string",
+          "description": "The email of the sender."
+        },
+        "message": {
+          "type": "string",
+          "description": "The message content."
+        },
+        "createdAt": {
+          "type": "number",
+          "description": "Timestamp of when the message was sent."
+        }
+      },
+      "required": ["name", "email", "message", "createdAt"]
     }
   },
   "firestore": {
@@ -50,6 +74,12 @@
         "$ref": "#/entities/Project"
       },
       "description": "Collection of portfolio projects."
+    },
+    "contacts": {
+      "schema": {
+        "$ref": "#/entities/ContactMessage"
+      },
+      "description": "Collection of contact messages."
     }
   }
 }

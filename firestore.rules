@@ -60,5 +60,15 @@ service cloud.firestore {
       allow update: if isValidProject(request.resource.data) && request.resource.data.createdAt == resource.data.createdAt;
       allow delete: if true;
     }
+
+    match /contacts/{contactId} {
+      allow read: if isAdmin();
+      allow create: if request.resource.data.keys().hasAll(['name', 'email', 'message', 'createdAt']) &&
+                       isValidString(request.resource.data.name, 1, 100) &&
+                       isValidString(request.resource.data.email, 5, 100) &&
+                       isValidString(request.resource.data.message, 1, 2000) &&
+                       request.resource.data.createdAt is number;
+      allow delete: if isAdmin();
+    }
   }
 }
