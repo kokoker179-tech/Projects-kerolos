@@ -85,7 +85,10 @@ function handleFirestoreError(error: unknown, operationType: OperationType, path
 
 // --- Firebase Hook ---
 const useProjects = () => {
-  const [projects, setProjects] = useState<Project[]>([]);
+  const [projects, setProjects] = useState<Project[]>(() => {
+    const cached = localStorage.getItem('projects_cache');
+    return cached ? JSON.parse(cached) : [];
+  });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -98,6 +101,7 @@ const useProjects = () => {
       // Sort by createdAt descending
       loadedProjects.sort((a, b) => b.createdAt - a.createdAt);
       setProjects(loadedProjects);
+      localStorage.setItem('projects_cache', JSON.stringify(loadedProjects));
       setLoading(false);
     }, (error) => {
       setLoading(false);
