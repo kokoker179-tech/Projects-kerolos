@@ -340,8 +340,8 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
           <div className="space-y-4 w-full md:w-auto">
             <div className="flex items-center gap-3">
               <Terminal className="text-[#61AFEF] shrink-0" size={28} />
-              <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-[#ECEFF4] break-words">
-                KEROLOS<span className="text-[#C678DD]">_</span>SFWAT
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-[#ECEFF4] break-words">
+                <span className="text-[#98C379] font-normal opacity-80">dev </span>KEROLOS<span className="text-[#C678DD]">_</span>SFWAT
               </h1>
             </div>
             <p className="text-[10px] md:text-sm opacity-60 tracking-widest uppercase truncate">
