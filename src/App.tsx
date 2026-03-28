@@ -324,7 +324,7 @@ function ProjectCard({ project }: { project: Project }) {
                   {[1, 2, 3].map(i => <div key={i}>{i}</div>)}
                 </div>
                 <div style={{ color: project.color || '#98C379' }}>
-                  <span className="text-[#C678DD]">const</span> lastUpdate = <span className="text-[#E5C07B]">'{new Date(project.updatedAt || project.createdAt).toLocaleDateString()}'</span>;
+                  <span className="text-[#C678DD]">const</span> lastUpdate = <span className="text-[#E5C07B]">'{new Date(project.updatedAt || project.createdAt).toLocaleDateString('en-GB')}'</span>;
                   <br />
                   <span className="text-[#C678DD]">const</span> status = <span className="text-[#E5C07B]">'{project.status || 'STABLE'}'</span>;
                 </div>
@@ -437,11 +437,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
       <div className="fixed inset-0 bg-code pointer-events-none"></div>
       <div className="scanline"></div>
 
-      {/* Header */}
-      <div className="fixed top-0 left-0 w-full bg-[#61AFEF] text-black text-[8px] py-0.5 px-2 z-[100] font-bold text-center uppercase tracking-widest flex justify-between items-center">
-        <span>SYSTEM_STATUS: ONLINE // VERSION: 4.2.0 // STABLE_BUILD</span>
-      </div>
-      <header className="relative z-10 p-6 md:p-12 border-b border-[#ABB2BF]/10 backdrop-blur-md bg-[#0F1117]/80 mt-4">
+      <header className="relative z-10 p-6 md:p-12 border-b border-[#ABB2BF]/10 backdrop-blur-md bg-[#0F1117]/80">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
           <div className="space-y-4 w-full md:w-auto">
             <div className="flex items-center gap-3">
@@ -733,9 +729,6 @@ const Admin = () => {
     <div className="min-h-screen bg-[#0F1117] text-[#ABB2BF] p-4 md:p-8 font-mono">
       <div className="max-w-4xl mx-auto">
         <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 md:mb-12 border-b border-[#ABB2BF]/10 pb-6 gap-4">
-          <h1 className="text-xl md:text-2xl flex items-center gap-2 text-[#ECEFF4]">
-            <Settings className="animate-spin-slow text-[#61AFEF]" /> ADMIN_DASHBOARD
-          </h1>
           <div className="flex gap-4">
             <button onClick={() => setActiveTab('projects')} className={cn("text-[10px] md:text-xs hover:text-[#61AFEF]", activeTab === 'projects' && "text-[#61AFEF]")}>PROJECTS</button>
             <button onClick={() => setActiveTab('contacts')} className={cn("text-[10px] md:text-xs hover:text-[#61AFEF]", activeTab === 'contacts' && "text-[#61AFEF]")}>CONTACTS</button>
