@@ -89,7 +89,20 @@ const useProjects = () => {
     const cached = localStorage.getItem('projects_cache');
     return cached ? JSON.parse(cached) : [];
   });
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(() => {
+    const cached = localStorage.getItem('projects_cache');
+    return !cached || JSON.parse(cached).length === 0;
+  });
+
+  useEffect(() => {
+    // Pre-fetch images when projects are loaded
+    projects.forEach(project => {
+      if (project.imageUrl) {
+        const img = new Image();
+        img.src = project.imageUrl;
+      }
+    });
+  }, [projects]);
 
   useEffect(() => {
     const path = 'projects';
@@ -239,14 +252,14 @@ function ProjectCard({ project }: { project: Project }) {
   return (
     <motion.div 
       layout
-      initial={{ opacity: 0, x: -20 }}
-      animate={{ opacity: 1, x: 0 }}
-      className="group relative p-[1px] rounded-lg bg-gradient-to-br from-[#61AFEF] via-[#C678DD] to-[#98C379] hover:from-[#98C379] hover:via-[#C678DD] hover:to-[#61AFEF] transition-all duration-500"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="group relative p-[1px] rounded-xl bg-gradient-to-br from-[#61AFEF]/30 via-[#C678DD]/30 to-[#98C379]/30 hover:from-[#61AFEF]/60 hover:via-[#C678DD]/60 hover:to-[#98C379]/60 transition-all duration-500"
     >
-      <div className="bg-[#0F1117] p-5 md:p-6 rounded-[7px] h-full">
-        <div className="flex flex-col md:flex-row gap-5 md:gap-6 items-start md:items-center">
+      <div className="bg-[#0F1117] p-6 md:p-8 rounded-[11px] h-full">
+        <div className="flex flex-col md:flex-row gap-6 md:gap-8 items-start">
           {project.imageUrl ? (
-            <div className="flex-shrink-0 w-full md:w-48 h-32 border border-[#ABB2BF]/20 rounded overflow-hidden relative group-hover:border-[#61AFEF] transition-colors bg-[#161B22]">
+            <div className="flex-shrink-0 w-full md:w-64 h-40 border border-[#ABB2BF]/10 rounded-lg overflow-hidden relative group-hover:border-[#61AFEF]/50 transition-colors bg-[#161B22]">
               <img 
                 src={project.imageUrl} 
                 alt={project.title} 
@@ -262,38 +275,46 @@ function ProjectCard({ project }: { project: Project }) {
               <div className="absolute inset-0 bg-gradient-to-t from-[#0F1117] to-transparent opacity-60"></div>
             </div>
           ) : (
-            <div className="flex-shrink-0 w-10 h-10 md:w-12 md:h-12 border border-[#C678DD]/40 flex items-center justify-center text-lg md:text-xl font-bold text-[#C678DD]/60 group-hover:text-[#C678DD] group-hover:border-[#C678DD] transition-colors rounded">
+            <div className="flex-shrink-0 w-16 h-16 md:w-20 md:h-20 border border-[#C678DD]/20 flex items-center justify-center text-2xl md:text-3xl font-bold text-[#C678DD]/40 group-hover:text-[#C678DD] group-hover:border-[#C678DD] transition-colors rounded-lg">
               {project.id.slice(0, 2).toUpperCase()}
             </div>
           )}
           <div className="flex-1 w-full">
-            <div className="flex flex-wrap items-center gap-3 mb-2">
-              <h3 className="text-lg md:text-xl font-bold tracking-tight text-[#ECEFF4] group-hover:text-[#61AFEF] transition-colors">{project.title}</h3>
-              <span className="text-[8px] md:text-[10px] text-[#D19A66] opacity-80 px-2 py-0.5 border border-[#D19A66]/20 rounded uppercase font-bold whitespace-nowrap">STABLE_BUILD</span>
+            <div className="flex flex-wrap items-center gap-3 mb-4">
+              <h3 className="text-2xl md:text-3xl font-bold tracking-tight text-[#ECEFF4] group-hover:text-[#61AFEF] transition-colors">{project.title}</h3>
+              <span className="text-[10px] md:text-xs text-[#D19A66] opacity-80 px-3 py-1 border border-[#D19A66]/20 rounded-full uppercase font-bold whitespace-nowrap">STABLE_BUILD</span>
               {project.duration && (
-                <span className="text-[8px] md:text-[10px] text-[#C678DD] opacity-80 px-2 py-0.5 border border-[#C678DD]/20 rounded uppercase font-bold whitespace-nowrap">
+                <span className="text-[10px] md:text-xs text-[#C678DD] opacity-80 px-3 py-1 border border-[#C678DD]/20 rounded-full uppercase font-bold whitespace-nowrap">
                   DURATION: {project.duration}
                 </span>
               )}
             </div>
-            <p className="text-xs md:text-sm text-[#ABB2BF] mb-4 leading-relaxed max-w-2xl line-clamp-3 md:line-clamp-none">{project.description}</p>
+            <p className="text-sm md:text-base text-[#ABB2BF] mb-6 leading-relaxed max-w-3xl">{project.description}</p>
+            
+            {/* Code Snippet Element */}
+            <div className="bg-[#161B22] p-4 rounded-lg border border-[#ABB2BF]/5 mb-6 font-mono text-[10px] md:text-xs text-[#98C379]">
+              <span className="text-[#C678DD]">const</span> projectStatus = <span className="text-[#E5C07B]">'STABLE'</span>;
+              <br />
+              <span className="text-[#C678DD]">const</span> lastUpdate = <span className="text-[#E5C07B]">{new Date(project.createdAt).toLocaleDateString()}</span>;
+            </div>
+
             <div className="flex flex-wrap gap-2">
               {project.tags?.map(tag => (
-                <span key={tag} className="text-[8px] md:text-[9px] font-mono border border-[#98C379]/30 bg-[#98C379]/5 px-2 py-0.5 text-[#98C379]">
+                <span key={tag} className="text-[10px] md:text-xs font-mono border border-[#98C379]/20 bg-[#98C379]/5 px-3 py-1 text-[#98C379] rounded">
                   {tag.toUpperCase()}
                 </span>
               ))}
             </div>
           </div>
-          <div className="flex flex-row md:flex-col gap-3 md:gap-4 justify-end w-full md:w-auto pt-4 md:pt-0 border-t border-[#ABB2BF]/10 md:border-t-0">
+          <div className="flex flex-row md:flex-col gap-3 md:gap-4 justify-end w-full md:w-auto pt-6 md:pt-0 border-t border-[#ABB2BF]/5 md:border-t-0">
             {project.githubLink && (
-              <a href={project.githubLink} target="_blank" rel="noopener noreferrer" className="flex-1 md:flex-none p-2 border border-[#ABB2BF]/20 text-[#ABB2BF] hover:bg-[#61AFEF] hover:text-black hover:border-[#61AFEF] transition-all rounded flex items-center justify-center">
-                <Github size={16} className="md:w-[18px] md:h-[18px]" />
+              <a href={project.githubLink} target="_blank" rel="noopener noreferrer" className="flex-1 md:flex-none p-3 border border-[#ABB2BF]/10 text-[#ABB2BF] hover:bg-[#61AFEF] hover:text-black hover:border-[#61AFEF] transition-all rounded-lg flex items-center justify-center">
+                <Github size={20} />
               </a>
             )}
             {project.liveLink && (
-              <a href={project.liveLink} target="_blank" rel="noopener noreferrer" className="flex-1 md:flex-none p-2 border border-[#ABB2BF]/20 text-[#ABB2BF] hover:bg-[#C678DD] hover:text-black hover:border-[#C678DD] transition-all rounded flex items-center justify-center">
-                <ExternalLink size={16} className="md:w-[18px] md:h-[18px]" />
+              <a href={project.liveLink} target="_blank" rel="noopener noreferrer" className="flex-1 md:flex-none p-3 border border-[#ABB2BF]/10 text-[#ABB2BF] hover:bg-[#C678DD] hover:text-black hover:border-[#C678DD] transition-all rounded-lg flex items-center justify-center">
+                <ExternalLink size={20} />
               </a>
             )}
           </div>
@@ -760,13 +781,21 @@ const Admin = () => {
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-[10px] uppercase opacity-40">Image URL (Auto-generated)</label>
+                    <label className="text-[10px] uppercase opacity-40">Project Image (JPG/PNG)</label>
                     <input 
-                      type="url" 
-                      placeholder="https://..." 
-                      className="w-full bg-[#0F1117]/50 border border-[#ABB2BF]/20 rounded p-3 focus:border-[#61AFEF] outline-none transition-colors text-sm"
-                      value={formData.imageUrl || ''}
-                      onChange={e => setFormData({...formData, imageUrl: e.target.value})}
+                      type="file" 
+                      accept="image/png, image/jpeg"
+                      className="w-full bg-[#0F1117]/50 border border-[#ABB2BF]/20 rounded p-3 focus:border-[#61AFEF] outline-none transition-colors text-sm file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-xs file:font-bold file:bg-[#61AFEF] file:text-black hover:file:bg-[#61AFEF]/90"
+                      onChange={e => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          const reader = new FileReader();
+                          reader.onloadend = () => {
+                            setFormData({...formData, imageUrl: reader.result as string});
+                          };
+                          reader.readAsDataURL(file);
+                        }
+                      }}
                     />
                   </div>
                 </div>
