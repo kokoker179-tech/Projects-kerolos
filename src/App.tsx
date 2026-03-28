@@ -211,54 +211,59 @@ function ProjectCard({ project }: { project: Project }) {
       layout
       initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
-      className="group relative border border-[#61AFEF]/20 p-5 md:p-6 transition-all hover:bg-[#61AFEF]/5 hover:border-[#61AFEF]/60 bg-[#161B22]/40 backdrop-blur-sm rounded-lg overflow-hidden"
+      className="group relative p-[1px] rounded-lg bg-gradient-to-br from-[#61AFEF] via-[#C678DD] to-[#98C379] hover:from-[#98C379] hover:via-[#C678DD] hover:to-[#61AFEF] transition-all duration-500"
     >
-      <div className="flex flex-col md:flex-row gap-5 md:gap-6 items-start md:items-center">
-        {project.imageUrl ? (
-          <div className="flex-shrink-0 w-full md:w-48 h-32 border border-[#C678DD]/40 rounded overflow-hidden relative group-hover:border-[#C678DD] transition-colors">
-            <img src={project.imageUrl} alt={project.title} className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" referrerPolicy="no-referrer" />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#0F1117] to-transparent opacity-60"></div>
+      <div className="bg-[#0F1117] p-5 md:p-6 rounded-[7px] h-full">
+        <div className="flex flex-col md:flex-row gap-5 md:gap-6 items-start md:items-center">
+          {project.imageUrl ? (
+            <div className="flex-shrink-0 w-full md:w-48 h-32 border border-[#ABB2BF]/20 rounded overflow-hidden relative group-hover:border-[#61AFEF] transition-colors bg-[#161B22]">
+              <img 
+                src={project.imageUrl} 
+                alt={project.title} 
+                className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" 
+                referrerPolicy="no-referrer" 
+                loading="eager"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#0F1117] to-transparent opacity-60"></div>
+            </div>
+          ) : (
+            <div className="flex-shrink-0 w-10 h-10 md:w-12 md:h-12 border border-[#C678DD]/40 flex items-center justify-center text-lg md:text-xl font-bold text-[#C678DD]/60 group-hover:text-[#C678DD] group-hover:border-[#C678DD] transition-colors rounded">
+              {project.id.slice(0, 2).toUpperCase()}
+            </div>
+          )}
+          <div className="flex-1 w-full">
+            <div className="flex flex-wrap items-center gap-3 mb-2">
+              <h3 className="text-lg md:text-xl font-bold tracking-tight text-[#ECEFF4] group-hover:text-[#61AFEF] transition-colors">{project.title}</h3>
+              <span className="text-[8px] md:text-[10px] text-[#D19A66] opacity-80 px-2 py-0.5 border border-[#D19A66]/20 rounded uppercase font-bold whitespace-nowrap">STABLE_BUILD</span>
+              {project.duration && (
+                <span className="text-[8px] md:text-[10px] text-[#C678DD] opacity-80 px-2 py-0.5 border border-[#C678DD]/20 rounded uppercase font-bold whitespace-nowrap">
+                  DURATION: {project.duration}
+                </span>
+              )}
+            </div>
+            <p className="text-xs md:text-sm text-[#ABB2BF] mb-4 leading-relaxed max-w-2xl line-clamp-3 md:line-clamp-none">{project.description}</p>
+            <div className="flex flex-wrap gap-2">
+              {project.tags?.map(tag => (
+                <span key={tag} className="text-[8px] md:text-[9px] font-mono border border-[#98C379]/30 bg-[#98C379]/5 px-2 py-0.5 text-[#98C379]">
+                  {tag.toUpperCase()}
+                </span>
+              ))}
+            </div>
           </div>
-        ) : (
-          <div className="flex-shrink-0 w-10 h-10 md:w-12 md:h-12 border border-[#C678DD]/40 flex items-center justify-center text-lg md:text-xl font-bold text-[#C678DD]/60 group-hover:text-[#C678DD] group-hover:border-[#C678DD] transition-colors rounded">
-            {project.id.slice(0, 2).toUpperCase()}
-          </div>
-        )}
-        <div className="flex-1 w-full">
-          <div className="flex flex-wrap items-center gap-3 mb-2">
-            <h3 className="text-lg md:text-xl font-bold tracking-tight text-[#61AFEF]">{project.title}</h3>
-            <span className="text-[8px] md:text-[10px] text-[#D19A66] opacity-80 px-2 py-0.5 border border-[#D19A66]/20 rounded uppercase font-bold whitespace-nowrap">STABLE_BUILD</span>
-            {project.duration && (
-              <span className="text-[8px] md:text-[10px] text-[#C678DD] opacity-80 px-2 py-0.5 border border-[#C678DD]/20 rounded uppercase font-bold whitespace-nowrap">
-                DURATION: {project.duration}
-              </span>
+          <div className="flex flex-row md:flex-col gap-3 md:gap-4 justify-end w-full md:w-auto pt-4 md:pt-0 border-t border-[#ABB2BF]/10 md:border-t-0">
+            {project.githubLink && (
+              <a href={project.githubLink} target="_blank" rel="noopener noreferrer" className="flex-1 md:flex-none p-2 border border-[#ABB2BF]/20 text-[#ABB2BF] hover:bg-[#61AFEF] hover:text-black hover:border-[#61AFEF] transition-all rounded flex items-center justify-center">
+                <Github size={16} className="md:w-[18px] md:h-[18px]" />
+              </a>
+            )}
+            {project.liveLink && (
+              <a href={project.liveLink} target="_blank" rel="noopener noreferrer" className="flex-1 md:flex-none p-2 border border-[#ABB2BF]/20 text-[#ABB2BF] hover:bg-[#C678DD] hover:text-black hover:border-[#C678DD] transition-all rounded flex items-center justify-center">
+                <ExternalLink size={16} className="md:w-[18px] md:h-[18px]" />
+              </a>
             )}
           </div>
-          <p className="text-xs md:text-sm text-[#ABB2BF] mb-4 leading-relaxed max-w-2xl line-clamp-3 md:line-clamp-none">{project.description}</p>
-          <div className="flex flex-wrap gap-2">
-            {project.tags?.map(tag => (
-              <span key={tag} className="text-[8px] md:text-[9px] font-mono border border-[#98C379]/30 bg-[#98C379]/5 px-2 py-0.5 text-[#98C379]">
-                {tag.toUpperCase()}
-              </span>
-            ))}
-          </div>
-        </div>
-        <div className="flex flex-row md:flex-col gap-3 md:gap-4 justify-end w-full md:w-auto pt-4 md:pt-0 border-t border-[#ABB2BF]/10 md:border-t-0">
-          {project.githubLink && (
-            <a href={project.githubLink} target="_blank" rel="noopener noreferrer" className="flex-1 md:flex-none p-2 border border-[#ABB2BF]/20 text-[#ABB2BF] hover:bg-[#61AFEF] hover:text-black hover:border-[#61AFEF] transition-all rounded flex items-center justify-center">
-              <Github size={16} className="md:w-[18px] md:h-[18px]" />
-            </a>
-          )}
-          {project.liveLink && (
-            <a href={project.liveLink} target="_blank" rel="noopener noreferrer" className="flex-1 md:flex-none p-2 border border-[#ABB2BF]/20 text-[#ABB2BF] hover:bg-[#C678DD] hover:text-black hover:border-[#C678DD] transition-all rounded flex items-center justify-center">
-              <ExternalLink size={16} className="md:w-[18px] md:h-[18px]" />
-            </a>
-          )}
         </div>
       </div>
-      
-      {/* Decorative elements */}
-      <div className="absolute top-2 right-2 w-1 h-1 bg-[#61AFEF]/40 rounded-full hidden md:block"></div>
     </motion.div>
   );
 }
@@ -569,27 +574,20 @@ const Portfolio = () => {
         </div>
       </div>
 
-      {loading ? (
-        <div className="h-96 flex flex-col items-center justify-center gap-6">
-          <div className="w-12 h-12 border-2 border-[#61AFEF]/20 border-t-[#61AFEF] rounded-full animate-spin"></div>
-          <p className="animate-pulse text-xs tracking-[0.3em] text-[#61AFEF]">MOUNTING_FILESYSTEM...</p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 gap-6">
-          {projects.map(project => (
-            <div key={project.id}>
-              <ProjectCard project={project} />
-            </div>
-          ))}
-          {projects.length === 0 && (
-            <div className="p-24 text-center border border-dashed border-[#ABB2BF]/10 rounded-xl bg-[#161B22]/20">
-              <p className="opacity-40 text-xs tracking-widest">
-                EMPTY_REPOSITORY: NO_OBJECTS_DETECTED
-              </p>
-            </div>
-          )}
-        </div>
-      )}
+      <div className="grid grid-cols-1 gap-6">
+        {projects.map(project => (
+          <div key={project.id}>
+            <ProjectCard project={project} />
+          </div>
+        ))}
+        {!loading && projects.length === 0 && (
+          <div className="p-24 text-center border border-dashed border-[#ABB2BF]/10 rounded-xl bg-[#161B22]/20">
+            <p className="opacity-40 text-xs tracking-widest">
+              EMPTY_REPOSITORY: NO_OBJECTS_DETECTED
+            </p>
+          </div>
+        )}
+      </div>
     </Layout>
   );
 };
