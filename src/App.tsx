@@ -192,7 +192,17 @@ const useContacts = () => {
     return () => unsubscribe();
   }, []);
 
-  return { contacts, loading };
+  const deleteContact = async (id: string) => {
+    const path = `contacts/${id}`;
+    try {
+      await deleteDoc(doc(db, 'contacts', id));
+      toast.success('تم حذف الرسالة بنجاح!');
+    } catch (error) {
+      handleFirestoreError(error, OperationType.DELETE, path);
+    }
+  };
+
+  return { contacts, loading, deleteContact };
 };
 
 // --- Components ---
@@ -483,23 +493,22 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
 
       {/* Footer */}
       <footer className="relative z-10 p-12 md:p-16 border-t border-[#ABB2BF]/10 bg-[#0F1117]/90 backdrop-blur-md mt-auto w-full">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6 md:gap-8">
-          <div className="space-y-1 text-center md:text-left">
-            <p className="text-xs opacity-40 uppercase tracking-widest">
+        <div className="max-w-7xl mx-auto flex flex-col items-center justify-center text-center gap-6">
+          <div className="space-y-3">
+            <p className="text-sm opacity-40 uppercase tracking-[0.4em]">
               [ SECURE_SHELL_V4.2 ]
             </p>
-            <p className="text-sm opacity-60">© 2026 KEROLOS_SFWAT // COMPILED_WITH_PASSION</p>
-            <p className="text-xs opacity-60 mt-2">
-              Developer by: <a href="https://www.instagram.com/kero_sfwat?igsh=MW13OWg0bXE2emJmYg%3D%3D&utm_source=qr" target="_blank" rel="noopener noreferrer" className="text-[#61AFEF] hover:underline">kerolos sfwat</a>
-              <a href="https://www.instagram.com/kero_sfwat?igsh=MW13OWg0bXE2emJmYg%3D%3D&utm_source=qr" target="_blank" rel="noopener noreferrer" className="ml-2 inline-block">
-                <Instagram size={14} className="inline text-[#C678DD]" />
+            <p className="text-lg md:text-xl font-bold text-[#ECEFF4] tracking-tight">© 2026 KEROLOS_SFWAT // COMPILED_WITH_PASSION</p>
+            <p className="text-base opacity-80 mt-4">
+              Developer by: <a href="https://www.instagram.com/kero_sfwat?igsh=MW13OWg0bXE2emJmYg%3D%3D&utm_source=qr" target="_blank" rel="noopener noreferrer" className="text-[#61AFEF] hover:underline font-bold">kerolos sfwat</a>
+              <a href="https://www.instagram.com/kero_sfwat?igsh=MW13OWg0bXE2emJmYg%3D%3D&utm_source=qr" target="_blank" rel="noopener noreferrer" className="ml-3 inline-block align-middle">
+                <Instagram size={20} className="text-[#C678DD] hover:scale-110 transition-transform" />
               </a>
             </p>
-          </div>
-          <div className="flex flex-col sm:flex-row items-center gap-6">
-            <div className="flex gap-6 items-center">
-              <a href="#" className="text-xs uppercase hover:text-[#61AFEF] transition-colors">GITHUB</a>
-              <a href="#" className="text-xs uppercase hover:text-[#C678DD] transition-colors">LINKEDIN</a>
+            <div className="mt-6">
+              <Link to="/admin-panel" className="text-[10px] opacity-20 hover:opacity-100 transition-opacity uppercase tracking-widest flex items-center justify-center gap-2">
+                <Settings size={10} /> ACCESS_CONTROL_PANEL
+              </Link>
             </div>
           </div>
         </div>
@@ -696,9 +705,12 @@ const Portfolio = () => {
 
 const Admin = () => {
   const { projects, loading: projectsLoading, addProject, updateProject, deleteProject } = useProjects();
-  const { contacts, loading: contactsLoading } = useContacts();
+  const { contacts, loading: contactsLoading, deleteContact } = useContacts();
   const [activeTab, setActiveTab] = useState<'projects' | 'contacts'>('projects');
   const [isEditing, setIsEditing] = useState<string | null>(null);
+  const [user, setUser] = useState<FirebaseUser | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
+
   const [formData, setFormData] = useState<Partial<Project>>({
     title: '',
     description: '',
@@ -711,6 +723,14 @@ const Admin = () => {
     color: '#61AFEF'
   });
   const [tagInput, setTagInput] = useState('');
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (u) => {
+      setUser(u);
+      setAuthLoading(false);
+    });
+    return () => unsubscribe();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -730,9 +750,41 @@ const Admin = () => {
   const handleEdit = (project: Project) => {
     setIsEditing(project.id);
     setFormData(project);
+    setActiveTab('projects');
   };
 
-  if (projectsLoading || contactsLoading) return null;
+  if (authLoading) return (
+    <div className="min-h-screen bg-[#0F1117] flex items-center justify-center">
+      <div className="w-8 h-8 border-2 border-[#61AFEF] border-t-transparent rounded-full animate-spin"></div>
+    </div>
+  );
+
+  const isAdmin = user?.email === 'kokoker179@gmail.com';
+
+  if (!user || !isAdmin) {
+    return (
+      <div className="min-h-screen bg-[#0F1117] flex items-center justify-center p-6">
+        <div className="max-w-md w-full p-8 border border-[#ABB2BF]/10 bg-[#161B22]/40 rounded-xl text-center space-y-6">
+          <Settings className="mx-auto text-[#61AFEF]" size={48} />
+          <h2 className="text-xl font-bold text-[#ECEFF4]">RESTRICTED_ACCESS</h2>
+          <p className="text-sm text-[#ABB2BF]">Please authenticate as administrator to access the control panel.</p>
+          <button 
+            onClick={signInWithGoogle}
+            className="w-full py-3 bg-[#61AFEF] text-black font-bold rounded hover:bg-[#61AFEF]/90 transition-all flex items-center justify-center gap-2"
+          >
+            <LogIn size={18} /> AUTHENTICATE_WITH_GOOGLE
+          </button>
+          <Link to="/" className="block text-xs text-[#ABB2BF] hover:text-[#61AFEF] transition-colors">RETURN_TO_BASE</Link>
+        </div>
+      </div>
+    );
+  }
+
+  if (projectsLoading || contactsLoading) return (
+    <div className="min-h-screen bg-[#0F1117] flex items-center justify-center font-mono text-[#61AFEF]">
+      LOADING_DATABASE_RECORDS...
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-[#0F1117] text-[#ABB2BF] p-4 md:p-8 font-mono">
@@ -745,6 +797,9 @@ const Admin = () => {
               <ExternalLink size={12} /> BACK_TO_SITE
             </Link>
           </div>
+          <button onClick={logOut} className="text-[10px] md:text-xs text-red-400 hover:text-red-300 flex items-center gap-2">
+            <LogOut size={12} /> TERMINATE_SESSION
+          </button>
         </header>
 
         {activeTab === 'projects' ? (
@@ -898,7 +953,7 @@ const Admin = () => {
                       type="button" 
                       onClick={() => {
                         setIsEditing(null);
-                        setFormData({ title: '', description: '', githubLink: '', liveLink: '', imageUrl: '', duration: '', tags: [] });
+                        setFormData({ title: '', description: '', githubLink: '', liveLink: '', imageUrl: '', duration: '', tags: [], status: 'STABLE', color: '#61AFEF' });
                       }}
                       className="px-8 py-3 border border-[#ABB2BF]/20 rounded hover:bg-[#ABB2BF]/5 transition-colors text-sm"
                     >
@@ -936,16 +991,30 @@ const Admin = () => {
           <section>
             <h2 className="text-[10px] md:text-sm mb-6 opacity-60 uppercase tracking-widest text-[#98C379]">CONTACT_MESSAGES</h2>
             <div className="space-y-3">
-              {contacts.map(c => (
-                <div key={c.id} className="p-4 border border-[#ABB2BF]/10 rounded-lg bg-[#161B22]/40 gap-4">
-                  <div className="flex justify-between items-start mb-2">
-                    <h3 className="text-sm font-bold text-[#ECEFF4]">{c.name}</h3>
-                    <p className="text-[9px] opacity-40 font-mono">{new Date(c.createdAt).toLocaleString()}</p>
-                  </div>
-                  <p className="text-xs text-[#61AFEF] mb-2">{c.email}</p>
-                  <p className="text-sm text-[#ABB2BF]">{c.message}</p>
+              {contacts.length === 0 ? (
+                <div className="p-12 text-center border border-dashed border-[#ABB2BF]/10 rounded-lg opacity-40 text-xs">
+                  NO_MESSAGES_RECEIVED
                 </div>
-              ))}
+              ) : (
+                contacts.map(c => (
+                  <div key={c.id} className="p-4 border border-[#ABB2BF]/10 rounded-lg bg-[#161B22]/40 gap-4 group relative">
+                    <div className="flex justify-between items-start mb-2">
+                      <h3 className="text-sm font-bold text-[#ECEFF4]">{c.name}</h3>
+                      <div className="flex items-center gap-4">
+                        <p className="text-[9px] opacity-40 font-mono">{new Date(c.createdAt).toLocaleString()}</p>
+                        <button 
+                          onClick={() => deleteContact(c.id)}
+                          className="opacity-0 group-hover:opacity-100 p-1 text-red-400 hover:text-red-300 transition-all"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    </div>
+                    <p className="text-xs text-[#61AFEF] mb-2">{c.email}</p>
+                    <p className="text-sm text-[#ABB2BF] leading-relaxed">{c.message}</p>
+                  </div>
+                ))
+              )}
             </div>
           </section>
         )}
