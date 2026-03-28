@@ -30,7 +30,7 @@ import {
 } from 'lucide-react';
 import { cn } from './lib/utils';
 import { db, auth, signInWithGoogle, logOut } from './firebase';
-import { collection, onSnapshot, doc, setDoc, deleteDoc, updateDoc, getDocFromServer, addDoc } from 'firebase/firestore';
+import { collection, onSnapshot, doc, setDoc, deleteDoc, updateDoc, addDoc } from 'firebase/firestore';
 import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 
 // --- Error Handling Spec ---
@@ -949,18 +949,6 @@ export default function App() {
   useEffect(() => {
     console.log("SYSTEM_INIT: Router mounting...");
     console.log("SYSTEM_INIT: Current Path:", window.location.pathname);
-    
-    // Test Firestore Connection
-    async function testConnection() {
-      try {
-        await getDocFromServer(doc(db, 'test', 'connection'));
-      } catch (error) {
-        if(error instanceof Error && error.message.includes('the client is offline')) {
-          console.error("Please check your Firebase configuration. ");
-        }
-      }
-    }
-    testConnection();
   }, []);
 
   return (
