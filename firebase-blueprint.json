@@ -25,6 +25,10 @@
           "type": "string",
           "description": "Optional link to the live deployment."
         },
+        "duration": {
+          "type": "string",
+          "description": "Optional duration of the project."
+        },
         "tags": {
           "type": "array",
           "items": {

@@ -12,6 +12,7 @@ service cloud.firestore {
     //   - imageUrl: string (optional, max 500 chars)
     //   - githubLink: string (optional, max 500 chars)
     //   - liveLink: string (optional, max 500 chars)
+    //   - duration: string (optional, max 100 chars)
     //   - tags: list of strings (optional, max 20 items, max 50 chars per item)
     //   - createdAt: number (required)
     // ===============================================================
@@ -48,6 +49,7 @@ service cloud.firestore {
              isValidOptionalString('imageUrl', 500) &&
              isValidOptionalString('githubLink', 500) &&
              isValidOptionalString('liveLink', 500) &&
+             isValidOptionalString('duration', 100) &&
              (!('tags' in data) || isValidTags(data.tags));
     }
 

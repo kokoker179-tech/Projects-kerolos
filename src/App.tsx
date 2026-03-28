@@ -211,16 +211,28 @@ function ProjectCard({ project }: { project: Project }) {
       layout
       initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
-      className="group relative border border-[#61AFEF]/20 p-5 md:p-6 transition-all hover:bg-[#61AFEF]/5 hover:border-[#61AFEF]/60 bg-[#161B22]/40 backdrop-blur-sm rounded-lg"
+      className="group relative border border-[#61AFEF]/20 p-5 md:p-6 transition-all hover:bg-[#61AFEF]/5 hover:border-[#61AFEF]/60 bg-[#161B22]/40 backdrop-blur-sm rounded-lg overflow-hidden"
     >
       <div className="flex flex-col md:flex-row gap-5 md:gap-6 items-start md:items-center">
-        <div className="flex-shrink-0 w-10 h-10 md:w-12 md:h-12 border border-[#C678DD]/40 flex items-center justify-center text-lg md:text-xl font-bold text-[#C678DD]/60 group-hover:text-[#C678DD] group-hover:border-[#C678DD] transition-colors rounded">
-          {project.id.slice(0, 2).toUpperCase()}
-        </div>
+        {project.imageUrl ? (
+          <div className="flex-shrink-0 w-full md:w-48 h-32 border border-[#C678DD]/40 rounded overflow-hidden relative group-hover:border-[#C678DD] transition-colors">
+            <img src={project.imageUrl} alt={project.title} className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" referrerPolicy="no-referrer" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#0F1117] to-transparent opacity-60"></div>
+          </div>
+        ) : (
+          <div className="flex-shrink-0 w-10 h-10 md:w-12 md:h-12 border border-[#C678DD]/40 flex items-center justify-center text-lg md:text-xl font-bold text-[#C678DD]/60 group-hover:text-[#C678DD] group-hover:border-[#C678DD] transition-colors rounded">
+            {project.id.slice(0, 2).toUpperCase()}
+          </div>
+        )}
         <div className="flex-1 w-full">
           <div className="flex flex-wrap items-center gap-3 mb-2">
             <h3 className="text-lg md:text-xl font-bold tracking-tight text-[#61AFEF]">{project.title}</h3>
             <span className="text-[8px] md:text-[10px] text-[#D19A66] opacity-80 px-2 py-0.5 border border-[#D19A66]/20 rounded uppercase font-bold whitespace-nowrap">STABLE_BUILD</span>
+            {project.duration && (
+              <span className="text-[8px] md:text-[10px] text-[#C678DD] opacity-80 px-2 py-0.5 border border-[#C678DD]/20 rounded uppercase font-bold whitespace-nowrap">
+                DURATION: {project.duration}
+              </span>
+            )}
           </div>
           <p className="text-xs md:text-sm text-[#ABB2BF] mb-4 leading-relaxed max-w-2xl line-clamp-3 md:line-clamp-none">{project.description}</p>
           <div className="flex flex-wrap gap-2">
@@ -590,6 +602,8 @@ const Admin = () => {
     description: '',
     githubLink: '',
     liveLink: '',
+    imageUrl: '',
+    duration: '',
     tags: []
   });
   const [tagInput, setTagInput] = useState('');
@@ -604,7 +618,7 @@ const Admin = () => {
     } else {
       await addProject(formData as Omit<Project, 'id' | 'createdAt'>);
     }
-    setFormData({ title: '', description: '', githubLink: '', liveLink: '', tags: [] });
+    setFormData({ title: '', description: '', githubLink: '', liveLink: '', imageUrl: '', duration: '', tags: [] });
   };
 
   const handleEdit = (project: Project) => {
@@ -671,7 +685,37 @@ const Admin = () => {
                   placeholder="https://demo.app/..." 
                   className="w-full bg-[#0F1117]/50 border border-[#ABB2BF]/20 rounded p-3 focus:border-[#61AFEF] outline-none transition-colors text-sm"
                   value={formData.liveLink}
-                  onChange={e => setFormData({...formData, liveLink: e.target.value})}
+                  onChange={e => {
+                    const url = e.target.value;
+                    setFormData({
+                      ...formData, 
+                      liveLink: url,
+                      imageUrl: url ? `https://image.thum.io/get/width/800/crop/600/${url}` : formData.imageUrl
+                    });
+                  }}
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <label className="text-[10px] uppercase opacity-40">Project Duration</label>
+                <input 
+                  type="text" 
+                  placeholder="e.g. 3 Months, 2 Weeks..." 
+                  className="w-full bg-[#0F1117]/50 border border-[#ABB2BF]/20 rounded p-3 focus:border-[#61AFEF] outline-none transition-colors text-sm"
+                  value={formData.duration || ''}
+                  onChange={e => setFormData({...formData, duration: e.target.value})}
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-[10px] uppercase opacity-40">Image URL (Auto-generated)</label>
+                <input 
+                  type="url" 
+                  placeholder="https://..." 
+                  className="w-full bg-[#0F1117]/50 border border-[#ABB2BF]/20 rounded p-3 focus:border-[#61AFEF] outline-none transition-colors text-sm"
+                  value={formData.imageUrl || ''}
+                  onChange={e => setFormData({...formData, imageUrl: e.target.value})}
                 />
               </div>
             </div>
@@ -714,7 +758,7 @@ const Admin = () => {
                   type="button" 
                   onClick={() => {
                     setIsEditing(null);
-                    setFormData({ title: '', description: '', githubLink: '', liveLink: '', tags: [] });
+                    setFormData({ title: '', description: '', githubLink: '', liveLink: '', imageUrl: '', duration: '', tags: [] });
                   }}
                   className="px-8 py-3 border border-[#ABB2BF]/20 rounded hover:bg-[#ABB2BF]/5 transition-colors text-sm"
                 >

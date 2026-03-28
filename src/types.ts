@@ -5,6 +5,7 @@ export interface Project {
   imageUrl?: string;
   githubLink?: string;
   liveLink?: string;
+  duration?: string;
   tags?: string[];
   createdAt: number;
 }
