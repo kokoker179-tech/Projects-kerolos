@@ -358,9 +358,6 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
               <NavLink to="/contact" className={({ isActive }) => cn("text-[10px] md:text-xs uppercase tracking-widest hover:text-[#61AFEF] transition-all border-b-2 border-transparent pb-1", isActive && "text-[#61AFEF] border-[#61AFEF]")}>
                 [ CONTACT ]
               </NavLink>
-              <a href="/" className="text-[10px] md:text-xs uppercase tracking-widest text-[#98C379] hover:text-[#61AFEF] transition-all flex items-center gap-1">
-                [ LIVE_SITE <ExternalLink size={10} /> ]
-              </a>
             </nav>
           </div>
           <div className="flex flex-row md:flex-col items-center md:items-end gap-4 md:gap-2 text-[9px] md:text-[10px] uppercase opacity-50 w-full md:w-auto justify-between md:justify-end border-t border-[#ABB2BF]/10 pt-4 md:border-t-0 md:pt-0">
@@ -390,9 +387,6 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
             <p className="text-[10px] md:text-xs opacity-60">© 2026 KEROLOS_SFWAT // COMPILED_WITH_PASSION</p>
           </div>
           <div className="flex flex-col sm:flex-row items-center gap-6">
-            <Link to="/admin-panel" className="group flex items-center gap-2 text-[9px] md:text-[10px] uppercase border border-[#ABB2BF]/20 px-4 py-2 hover:bg-[#ECEFF4] hover:text-black transition-all rounded">
-              <Settings size={12} className="group-hover:rotate-90 transition-transform" /> [ CONTROL_PANEL ]
-            </Link>
             <div className="flex gap-6 items-center">
               <a href="#" className="text-[9px] md:text-[10px] uppercase hover:text-[#61AFEF] transition-colors">GITHUB</a>
               <a href="#" className="text-[9px] md:text-[10px] uppercase hover:text-[#C678DD] transition-colors">LINKEDIN</a>
