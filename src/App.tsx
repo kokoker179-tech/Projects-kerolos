@@ -256,7 +256,12 @@ function ProjectCard({ project }: { project: Project }) {
       animate={{ opacity: 1, y: 0 }}
       className="group relative p-[1px] rounded-xl bg-gradient-to-br from-[#61AFEF]/30 via-[#C678DD]/30 to-[#98C379]/30 hover:from-[#61AFEF]/60 hover:via-[#C678DD]/60 hover:to-[#98C379]/60 transition-all duration-500"
     >
-      <div className="bg-[#0F1117] p-6 md:p-8 rounded-[11px] h-full">
+      {/* Code Background Overlay */}
+      <div className="absolute inset-0 opacity-[0.03] pointer-events-none font-mono text-[8px] overflow-hidden p-4 text-[#ABB2BF] leading-tight">
+        {`const system = { status: 'ONLINE', load: 0.42 };\nfunction boot() { return true; }\nclass Project extends Entity { constructor(data) { super(data); this.id = uuid(); } }\nconst handleAuth = async (req, res) => { const { token } = req.headers; }\n// ...`}
+      </div>
+
+      <div className="bg-[#0F1117] p-6 md:p-8 rounded-[11px] h-full relative z-10">
         <div className="flex flex-col md:flex-row gap-6 md:gap-8 items-start">
           {project.imageUrl ? (
             <div className="flex-shrink-0 w-full md:w-64 h-40 border border-[#ABB2BF]/10 rounded-lg overflow-hidden relative group-hover:border-[#61AFEF]/50 transition-colors bg-[#161B22]">
@@ -282,12 +287,6 @@ function ProjectCard({ project }: { project: Project }) {
           <div className="flex-1 w-full">
             <div className="flex flex-wrap items-center gap-3 mb-4">
               <h3 className="text-2xl md:text-3xl font-bold tracking-tight text-[#ECEFF4] group-hover:text-[#61AFEF] transition-colors">{project.title}</h3>
-              <span 
-                className="text-[10px] md:text-xs opacity-80 px-3 py-1 border rounded-full uppercase font-bold whitespace-nowrap"
-                style={{ borderColor: `${project.color || '#61AFEF'}40`, color: project.color || '#61AFEF', backgroundColor: `${project.color || '#61AFEF'}10` }}
-              >
-                {project.status || 'STABLE'}
-              </span>
               {project.duration && (
                 <span className="text-[10px] md:text-xs text-[#C678DD] opacity-80 px-3 py-1 border border-[#C678DD]/20 rounded-full uppercase font-bold whitespace-nowrap">
                   DURATION: {project.duration}
@@ -298,8 +297,6 @@ function ProjectCard({ project }: { project: Project }) {
             
             {/* Code Snippet Element */}
             <div className="bg-[#161B22] p-4 rounded-lg border border-[#ABB2BF]/5 mb-6 font-mono text-[10px] md:text-xs" style={{ color: project.color || '#98C379' }}>
-              <span className="text-[#C678DD]">const</span> projectStatus = <span className="text-[#E5C07B]">'{project.status || 'STABLE'}'</span>;
-              <br />
               <span className="text-[#C678DD]">const</span> lastUpdate = <span className="text-[#E5C07B]">'{new Date(project.createdAt).toLocaleDateString()}'</span>;
             </div>
 
