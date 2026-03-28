@@ -1,6 +1,6 @@
 import { HashRouter as Router, Routes, Route, Link, NavLink } from 'react-router-dom';
 import React, { useState, useEffect, Component, ErrorInfo, ReactNode } from 'react';
-import { Project } from './types';
+import { Project, ContactMessage } from './types';
 import { motion, AnimatePresence } from 'motion/react';
 import { Toaster, toast } from 'sonner';
 import { 
@@ -24,16 +24,14 @@ import {
   Globe,
   Database,
   Layers,
-  LogOut,
-  LogIn,
   Monitor,
   Laptop,
   Instagram
 } from 'lucide-react';
 import { cn } from './lib/utils';
-import { db, auth, signInWithGoogle, logOut } from './firebase';
+import { db, auth } from './firebase';
 import { collection, onSnapshot, doc, setDoc, deleteDoc, updateDoc, addDoc } from 'firebase/firestore';
-import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
+import { User as FirebaseUser } from 'firebase/auth';
 
 // --- Error Handling Spec ---
 enum OperationType {
@@ -505,11 +503,6 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                 <Instagram size={20} className="text-[#C678DD] hover:scale-110 transition-transform" />
               </a>
             </p>
-            <div className="mt-6">
-              <Link to="/admin-panel" className="text-[10px] opacity-20 hover:opacity-100 transition-opacity uppercase tracking-widest flex items-center justify-center gap-2">
-                <Settings size={10} /> ACCESS_CONTROL_PANEL
-              </Link>
-            </div>
           </div>
         </div>
       </footer>
@@ -708,8 +701,6 @@ const Admin = () => {
   const { contacts, loading: contactsLoading, deleteContact } = useContacts();
   const [activeTab, setActiveTab] = useState<'projects' | 'contacts'>('projects');
   const [isEditing, setIsEditing] = useState<string | null>(null);
-  const [user, setUser] = useState<FirebaseUser | null>(null);
-  const [authLoading, setAuthLoading] = useState(true);
 
   const [formData, setFormData] = useState<Partial<Project>>({
     title: '',
@@ -723,14 +714,6 @@ const Admin = () => {
     color: '#61AFEF'
   });
   const [tagInput, setTagInput] = useState('');
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (u) => {
-      setUser(u);
-      setAuthLoading(false);
-    });
-    return () => unsubscribe();
-  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -753,33 +736,6 @@ const Admin = () => {
     setActiveTab('projects');
   };
 
-  if (authLoading) return (
-    <div className="min-h-screen bg-[#0F1117] flex items-center justify-center">
-      <div className="w-8 h-8 border-2 border-[#61AFEF] border-t-transparent rounded-full animate-spin"></div>
-    </div>
-  );
-
-  const isAdmin = user?.email === 'kokoker179@gmail.com';
-
-  if (!user || !isAdmin) {
-    return (
-      <div className="min-h-screen bg-[#0F1117] flex items-center justify-center p-6">
-        <div className="max-w-md w-full p-8 border border-[#ABB2BF]/10 bg-[#161B22]/40 rounded-xl text-center space-y-6">
-          <Settings className="mx-auto text-[#61AFEF]" size={48} />
-          <h2 className="text-xl font-bold text-[#ECEFF4]">RESTRICTED_ACCESS</h2>
-          <p className="text-sm text-[#ABB2BF]">Please authenticate as administrator to access the control panel.</p>
-          <button 
-            onClick={signInWithGoogle}
-            className="w-full py-3 bg-[#61AFEF] text-black font-bold rounded hover:bg-[#61AFEF]/90 transition-all flex items-center justify-center gap-2"
-          >
-            <LogIn size={18} /> AUTHENTICATE_WITH_GOOGLE
-          </button>
-          <Link to="/" className="block text-xs text-[#ABB2BF] hover:text-[#61AFEF] transition-colors">RETURN_TO_BASE</Link>
-        </div>
-      </div>
-    );
-  }
-
   if (projectsLoading || contactsLoading) return (
     <div className="min-h-screen bg-[#0F1117] flex items-center justify-center font-mono text-[#61AFEF]">
       LOADING_DATABASE_RECORDS...
@@ -797,9 +753,6 @@ const Admin = () => {
               <ExternalLink size={12} /> BACK_TO_SITE
             </Link>
           </div>
-          <button onClick={logOut} className="text-[10px] md:text-xs text-red-400 hover:text-red-300 flex items-center gap-2">
-            <LogOut size={12} /> TERMINATE_SESSION
-          </button>
         </header>
 
         {activeTab === 'projects' ? (
