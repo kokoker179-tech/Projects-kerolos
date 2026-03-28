@@ -2,6 +2,7 @@ import { HashRouter as Router, Routes, Route, Link, NavLink } from 'react-router
 import React, { useState, useEffect, Component, ErrorInfo, ReactNode } from 'react';
 import { Project } from './types';
 import { motion, AnimatePresence } from 'motion/react';
+import { Toaster, toast } from 'sonner';
 import { 
   Github, 
   ExternalLink, 
@@ -26,7 +27,8 @@ import {
   LogOut,
   LogIn,
   Monitor,
-  Laptop
+  Laptop,
+  Instagram
 } from 'lucide-react';
 import { cn } from './lib/utils';
 import { db, auth, signInWithGoogle, logOut } from './firebase';
@@ -487,6 +489,12 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
               [ SECURE_SHELL_V4.2 ]
             </p>
             <p className="text-sm opacity-60">© 2026 KEROLOS_SFWAT // COMPILED_WITH_PASSION</p>
+            <p className="text-xs opacity-60 mt-2">
+              Developer by: <a href="https://www.instagram.com/kero_sfwat?igsh=MW13OWg0bXE2emJmYg%3D%3D&utm_source=qr" target="_blank" rel="noopener noreferrer" className="text-[#61AFEF] hover:underline">kerolos sfwat</a>
+              <a href="https://www.instagram.com/kero_sfwat?igsh=MW13OWg0bXE2emJmYg%3D%3D&utm_source=qr" target="_blank" rel="noopener noreferrer" className="ml-2 inline-block">
+                <Instagram size={14} className="inline text-[#C678DD]" />
+              </a>
+            </p>
           </div>
           <div className="flex flex-col sm:flex-row items-center gap-6">
             <div className="flex gap-6 items-center">
@@ -581,9 +589,8 @@ const Contact = () => {
         ...formData,
         createdAt: Date.now()
       });
-      setSent(true);
+      toast.success('تم الإرسال بنجاح!');
       setFormData({ name: '', email: '', message: '' });
-      setTimeout(() => setSent(false), 5000);
     } catch (error) {
       handleFirestoreError(error, OperationType.CREATE, 'contacts');
     }
@@ -711,11 +718,13 @@ const Admin = () => {
 
     if (isEditing) {
       await updateProject(isEditing, formData);
+      toast.success('تم تعديل المشروع بنجاح!');
       setIsEditing(null);
     } else {
       await addProject(formData as Omit<Project, 'id' | 'createdAt'>);
+      toast.success('تم إضافة المشروع بنجاح!');
     }
-    setFormData({ title: '', description: '', githubLink: '', liveLink: '', imageUrl: '', duration: '', tags: [] });
+    setFormData({ title: '', description: '', githubLink: '', liveLink: '', imageUrl: '', duration: '', tags: [], status: 'STABLE', color: '#61AFEF' });
   };
 
   const handleEdit = (project: Project) => {
@@ -951,6 +960,7 @@ export default function App() {
 
   return (
     <ErrorBoundary>
+      <Toaster position="top-right" theme="dark" />
       <Router>
         <Routes>
           <Route path="/" element={<Portfolio />} />
