@@ -8,6 +8,7 @@ export interface Project {
   duration?: string;
   tags?: string[];
   createdAt: number;
+  updatedAt?: number;
   status?: 'STABLE' | 'BETA' | 'EXPERIMENTAL' | 'DEPRECATED';
   color?: string;
 }
