@@ -24,7 +24,9 @@ import {
   Database,
   Layers,
   LogOut,
-  LogIn
+  LogIn,
+  Monitor,
+  Laptop
 } from 'lucide-react';
 import { cn } from './lib/utils';
 import { db, auth, signInWithGoogle, logOut } from './firebase';
@@ -258,17 +260,17 @@ function ProjectCard({ project }: { project: Project }) {
       layout
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="group relative p-[1px] rounded-xl bg-gradient-to-br from-[#61AFEF]/30 via-[#C678DD]/30 to-[#98C379]/30 hover:from-[#61AFEF]/60 hover:via-[#C678DD]/60 hover:to-[#98C379]/60 transition-all duration-500"
+      className="group relative p-[1px] rounded-2xl bg-gradient-to-br from-[#61AFEF]/20 via-[#C678DD]/20 to-[#98C379]/20 hover:from-[#61AFEF]/40 hover:via-[#C678DD]/40 hover:to-[#98C379]/40 transition-all duration-500 shadow-xl"
     >
-      {/* Code Background Overlay */}
-      <div className="absolute inset-0 opacity-[0.03] pointer-events-none font-mono text-[8px] overflow-hidden p-4 text-[#ABB2BF] leading-tight">
-        {`const system = { status: 'ONLINE', load: 0.42 };\nfunction boot() { return true; }\nclass Project extends Entity { constructor(data) { super(data); this.id = uuid(); } }\nconst handleAuth = async (req, res) => { const { token } = req.headers; }\n// ...`}
+      {/* Enhanced Code Background Overlay */}
+      <div className="absolute inset-0 opacity-[0.05] pointer-events-none font-mono text-[10px] overflow-hidden p-6 text-[#ABB2BF] leading-relaxed select-none">
+        {`// SYSTEM_BOOT_SEQUENCE_INIT\nconst kernel = { status: 'READY', pid: 1024 };\nfunction execute(task) { return task.run(); }\nclass Project extends Entity { constructor(data) { super(data); this.id = uuid(); } }\nconst handleAuth = async (req, res) => { const { token } = req.headers; }\n// ...\n[OK] DEPLOYMENT_SUCCESSFUL\n[LOG] MONITORING_ACTIVE\n[WARN] MEMORY_USAGE_OPTIMIZED`}
       </div>
 
-      <div className="bg-[#0F1117] p-6 md:p-8 rounded-[11px] h-full relative z-10">
+      <div className="bg-[#0B0E14] p-6 md:p-8 rounded-[15px] h-full relative z-10 border border-[#ABB2BF]/5">
         <div className="flex flex-col md:flex-row gap-6 md:gap-8 items-start">
           {project.imageUrl ? (
-            <div className="flex-shrink-0 w-full md:w-64 h-40 border border-[#ABB2BF]/10 rounded-lg overflow-hidden relative group-hover:border-[#61AFEF]/50 transition-colors bg-[#161B22]">
+            <div className="flex-shrink-0 w-full md:w-72 h-44 border border-[#ABB2BF]/10 rounded-xl overflow-hidden relative group-hover:border-[#61AFEF]/50 transition-colors bg-[#161B22]">
               <img 
                 src={project.imageUrl} 
                 alt={project.title} 
@@ -281,16 +283,19 @@ function ProjectCard({ project }: { project: Project }) {
                   e.currentTarget.classList.add('opacity-80');
                 }}
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#0F1117] to-transparent opacity-60"></div>
+              <div className="absolute inset-0 bg-gradient-to-t from-[#0B0E14] to-transparent opacity-70"></div>
+              <div className="absolute bottom-3 left-3 bg-[#0B0E14]/80 backdrop-blur-sm p-2 rounded-lg border border-[#ABB2BF]/10">
+                <Monitor size={20} className="text-[#61AFEF]" />
+              </div>
             </div>
           ) : (
-            <div className="flex-shrink-0 w-16 h-16 md:w-20 md:h-20 border border-[#C678DD]/20 flex items-center justify-center text-2xl md:text-3xl font-bold text-[#C678DD]/40 group-hover:text-[#C678DD] group-hover:border-[#C678DD] transition-colors rounded-lg">
-              {project.id.slice(0, 2).toUpperCase()}
+            <div className="flex-shrink-0 w-20 h-20 md:w-24 md:h-24 border border-[#C678DD]/20 flex items-center justify-center text-3xl md:text-4xl font-bold text-[#C678DD]/40 group-hover:text-[#C678DD] group-hover:border-[#C678DD] transition-colors rounded-xl bg-[#161B22]">
+              <Laptop size={40} />
             </div>
           )}
           <div className="flex-1 w-full">
             <div className="flex flex-wrap items-center gap-3 mb-4">
-              <h3 className="text-2xl md:text-3xl font-bold tracking-tight text-[#ECEFF4] group-hover:text-[#61AFEF] transition-colors">{project.title}</h3>
+              <h3 className="text-2xl md:text-4xl font-bold tracking-tight text-[#ECEFF4] group-hover:text-[#61AFEF] transition-colors">{project.title}</h3>
               {project.duration && (
                 <span className="text-[10px] md:text-xs text-[#C678DD] opacity-80 px-3 py-1 border border-[#C678DD]/20 rounded-full uppercase font-bold whitespace-nowrap">
                   DURATION: {project.duration}
@@ -300,13 +305,13 @@ function ProjectCard({ project }: { project: Project }) {
             <p className="text-sm md:text-base text-[#ABB2BF] mb-6 leading-relaxed max-w-3xl">{project.description}</p>
             
             {/* Code Snippet Element */}
-            <div className="bg-[#161B22] p-4 rounded-lg border border-[#ABB2BF]/5 mb-6 font-mono text-[10px] md:text-xs" style={{ color: project.color || '#98C379' }}>
+            <div className="bg-[#161B22] p-5 rounded-xl border border-[#ABB2BF]/5 mb-6 font-mono text-[11px] md:text-xs shadow-inner" style={{ color: project.color || '#98C379' }}>
               <span className="text-[#C678DD]">const</span> lastUpdate = <span className="text-[#E5C07B]">'{new Date(project.createdAt).toLocaleDateString()}'</span>;
             </div>
 
             <div className="flex flex-wrap gap-2">
               {project.tags?.map(tag => (
-                <span key={tag} className="text-[10px] md:text-xs font-mono border border-[#98C379]/20 bg-[#98C379]/5 px-3 py-1 text-[#98C379] rounded">
+                <span key={tag} className="text-[10px] md:text-xs font-mono border border-[#98C379]/20 bg-[#98C379]/5 px-3 py-1 text-[#98C379] rounded-md">
                   {tag.toUpperCase()}
                 </span>
               ))}
@@ -314,12 +319,12 @@ function ProjectCard({ project }: { project: Project }) {
           </div>
           <div className="flex flex-row md:flex-col gap-3 md:gap-4 justify-end w-full md:w-auto pt-6 md:pt-0 border-t border-[#ABB2BF]/5 md:border-t-0">
             {project.githubLink && (
-              <a href={project.githubLink} target="_blank" rel="noopener noreferrer" className="flex-1 md:flex-none p-3 border border-[#ABB2BF]/10 text-[#ABB2BF] hover:bg-[#61AFEF] hover:text-black hover:border-[#61AFEF] transition-all rounded-lg flex items-center justify-center">
+              <a href={project.githubLink} target="_blank" rel="noopener noreferrer" className="flex-1 md:flex-none p-3 border border-[#ABB2BF]/10 text-[#ABB2BF] hover:bg-[#61AFEF] hover:text-black hover:border-[#61AFEF] transition-all rounded-xl flex items-center justify-center">
                 <Github size={20} />
               </a>
             )}
             {project.liveLink && (
-              <a href={project.liveLink} target="_blank" rel="noopener noreferrer" className="flex-1 md:flex-none p-3 border border-[#ABB2BF]/10 text-[#ABB2BF] hover:bg-[#C678DD] hover:text-black hover:border-[#C678DD] transition-all rounded-lg flex items-center justify-center">
+              <a href={project.liveLink} target="_blank" rel="noopener noreferrer" className="flex-1 md:flex-none p-3 border border-[#ABB2BF]/10 text-[#ABB2BF] hover:bg-[#C678DD] hover:text-black hover:border-[#C678DD] transition-all rounded-xl flex items-center justify-center">
                 <ExternalLink size={20} />
               </a>
             )}
