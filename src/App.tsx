@@ -282,7 +282,12 @@ function ProjectCard({ project }: { project: Project }) {
           <div className="flex-1 w-full">
             <div className="flex flex-wrap items-center gap-3 mb-4">
               <h3 className="text-2xl md:text-3xl font-bold tracking-tight text-[#ECEFF4] group-hover:text-[#61AFEF] transition-colors">{project.title}</h3>
-              <span className="text-[10px] md:text-xs text-[#D19A66] opacity-80 px-3 py-1 border border-[#D19A66]/20 rounded-full uppercase font-bold whitespace-nowrap">STABLE_BUILD</span>
+              <span 
+                className="text-[10px] md:text-xs opacity-80 px-3 py-1 border rounded-full uppercase font-bold whitespace-nowrap"
+                style={{ borderColor: `${project.color || '#61AFEF'}40`, color: project.color || '#61AFEF', backgroundColor: `${project.color || '#61AFEF'}10` }}
+              >
+                {project.status || 'STABLE'}
+              </span>
               {project.duration && (
                 <span className="text-[10px] md:text-xs text-[#C678DD] opacity-80 px-3 py-1 border border-[#C678DD]/20 rounded-full uppercase font-bold whitespace-nowrap">
                   DURATION: {project.duration}
@@ -292,10 +297,10 @@ function ProjectCard({ project }: { project: Project }) {
             <p className="text-sm md:text-base text-[#ABB2BF] mb-6 leading-relaxed max-w-3xl">{project.description}</p>
             
             {/* Code Snippet Element */}
-            <div className="bg-[#161B22] p-4 rounded-lg border border-[#ABB2BF]/5 mb-6 font-mono text-[10px] md:text-xs text-[#98C379]">
-              <span className="text-[#C678DD]">const</span> projectStatus = <span className="text-[#E5C07B]">'STABLE'</span>;
+            <div className="bg-[#161B22] p-4 rounded-lg border border-[#ABB2BF]/5 mb-6 font-mono text-[10px] md:text-xs" style={{ color: project.color || '#98C379' }}>
+              <span className="text-[#C678DD]">const</span> projectStatus = <span className="text-[#E5C07B]">'{project.status || 'STABLE'}'</span>;
               <br />
-              <span className="text-[#C678DD]">const</span> lastUpdate = <span className="text-[#E5C07B]">{new Date(project.createdAt).toLocaleDateString()}</span>;
+              <span className="text-[#C678DD]">const</span> lastUpdate = <span className="text-[#E5C07B]">'{new Date(project.createdAt).toLocaleDateString()}'</span>;
             </div>
 
             <div className="flex flex-wrap gap-2">
@@ -670,7 +675,9 @@ const Admin = () => {
     liveLink: '',
     imageUrl: '',
     duration: '',
-    tags: []
+    tags: [],
+    status: 'STABLE',
+    color: '#61AFEF'
   });
   const [tagInput, setTagInput] = useState('');
 
@@ -769,35 +776,58 @@ const Admin = () => {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div className="space-y-2">
-                    <label className="text-[10px] uppercase opacity-40">Project Duration</label>
+                    <label className="text-[10px] uppercase opacity-40">Status</label>
+                    <select 
+                      className="w-full bg-[#0F1117]/50 border border-[#ABB2BF]/20 rounded p-3 focus:border-[#61AFEF] outline-none transition-colors text-sm"
+                      value={formData.status}
+                      onChange={e => setFormData({...formData, status: e.target.value as any})}
+                    >
+                      <option value="STABLE">STABLE</option>
+                      <option value="BETA">BETA</option>
+                      <option value="EXPERIMENTAL">EXPERIMENTAL</option>
+                      <option value="DEPRECATED">DEPRECATED</option>
+                    </select>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] uppercase opacity-40">Accent Color</label>
+                    <input 
+                      type="color" 
+                      className="w-full h-[46px] bg-[#0F1117]/50 border border-[#ABB2BF]/20 rounded p-1 focus:border-[#61AFEF] outline-none transition-colors"
+                      value={formData.color}
+                      onChange={e => setFormData({...formData, color: e.target.value})}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] uppercase opacity-40">Duration</label>
                     <input 
                       type="text" 
-                      placeholder="e.g. 3 Months, 2 Weeks..." 
+                      placeholder="e.g. 3 Months..." 
                       className="w-full bg-[#0F1117]/50 border border-[#ABB2BF]/20 rounded p-3 focus:border-[#61AFEF] outline-none transition-colors text-sm"
                       value={formData.duration || ''}
                       onChange={e => setFormData({...formData, duration: e.target.value})}
                     />
                   </div>
-                  <div className="space-y-2">
-                    <label className="text-[10px] uppercase opacity-40">Project Image (JPG/PNG)</label>
-                    <input 
-                      type="file" 
-                      accept="image/png, image/jpeg"
-                      className="w-full bg-[#0F1117]/50 border border-[#ABB2BF]/20 rounded p-3 focus:border-[#61AFEF] outline-none transition-colors text-sm file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-xs file:font-bold file:bg-[#61AFEF] file:text-black hover:file:bg-[#61AFEF]/90"
-                      onChange={e => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          const reader = new FileReader();
-                          reader.onloadend = () => {
-                            setFormData({...formData, imageUrl: reader.result as string});
-                          };
-                          reader.readAsDataURL(file);
-                        }
-                      }}
-                    />
-                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[10px] uppercase opacity-40">Project Image (JPG/PNG)</label>
+                  <input 
+                    type="file" 
+                    accept="image/png, image/jpeg"
+                    className="w-full bg-[#0F1117]/50 border border-[#ABB2BF]/20 rounded p-3 focus:border-[#61AFEF] outline-none transition-colors text-sm file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-xs file:font-bold file:bg-[#61AFEF] file:text-black hover:file:bg-[#61AFEF]/90"
+                    onChange={e => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        const reader = new FileReader();
+                        reader.onloadend = () => {
+                          setFormData({...formData, imageUrl: reader.result as string});
+                        };
+                        reader.readAsDataURL(file);
+                      }
+                    }}
+                  />
                 </div>
                 
                 <div className="space-y-3">
