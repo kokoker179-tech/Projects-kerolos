@@ -113,8 +113,12 @@ const useProjects = () => {
       });
       // Sort by createdAt descending
       loadedProjects.sort((a, b) => b.createdAt - a.createdAt);
-      setProjects(loadedProjects);
-      localStorage.setItem('projects_cache', JSON.stringify(loadedProjects));
+      
+      // Only update if we have data or if we are sure it's not a transient empty state
+      if (loadedProjects.length > 0) {
+        setProjects(loadedProjects);
+        localStorage.setItem('projects_cache', JSON.stringify(loadedProjects));
+      }
       setLoading(false);
     }, (error) => {
       setLoading(false);
