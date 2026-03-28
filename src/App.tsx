@@ -401,12 +401,12 @@ ORDER BY priority DESC;`,
   return (
     <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
       <div className="code-overlay animate-float">
-        {Array.from({ length: 20 }).map((_, i) => (
+        {Array.from({ length: 5 }).map((_, i) => (
           <div key={i} className="mb-8 opacity-40 text-[#61AFEF]">
             {codeSnippets[i % codeSnippets.length]}
           </div>
         ))}
-        {Array.from({ length: 20 }).map((_, i) => (
+        {Array.from({ length: 5 }).map((_, i) => (
           <div key={`dup-${i}`} className="mb-8 opacity-40 text-[#C678DD]">
             {codeSnippets[i % codeSnippets.length]}
           </div>
@@ -483,15 +483,15 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
       <footer className="relative z-10 p-12 md:p-16 border-t border-[#ABB2BF]/10 bg-[#0F1117]/90 backdrop-blur-md mt-auto w-full">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6 md:gap-8">
           <div className="space-y-1 text-center md:text-left">
-            <p className="text-[9px] opacity-40 uppercase tracking-widest">
+            <p className="text-xs opacity-40 uppercase tracking-widest">
               [ SECURE_SHELL_V4.2 ]
             </p>
-            <p className="text-[10px] md:text-xs opacity-60">© 2026 KEROLOS_SFWAT // COMPILED_WITH_PASSION</p>
+            <p className="text-sm opacity-60">© 2026 KEROLOS_SFWAT // COMPILED_WITH_PASSION</p>
           </div>
           <div className="flex flex-col sm:flex-row items-center gap-6">
             <div className="flex gap-6 items-center">
-              <a href="#" className="text-[9px] md:text-[10px] uppercase hover:text-[#61AFEF] transition-colors">GITHUB</a>
-              <a href="#" className="text-[9px] md:text-[10px] uppercase hover:text-[#C678DD] transition-colors">LINKEDIN</a>
+              <a href="#" className="text-xs uppercase hover:text-[#61AFEF] transition-colors">GITHUB</a>
+              <a href="#" className="text-xs uppercase hover:text-[#C678DD] transition-colors">LINKEDIN</a>
             </div>
           </div>
         </div>
@@ -947,8 +947,6 @@ const Admin = () => {
 
 export default function App() {
   useEffect(() => {
-    console.log("SYSTEM_INIT: Router mounting...");
-    console.log("SYSTEM_INIT: Current Path:", window.location.pathname);
   }, []);
 
   return (
