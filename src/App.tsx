@@ -116,9 +116,8 @@ const useProjects = () => {
       // Sort by createdAt descending
       loadedProjects.sort((a, b) => b.createdAt - a.createdAt);
       
-      // Only update if we have data or if we are sure it's not a transient empty state
+      setProjects(loadedProjects);
       if (loadedProjects.length > 0) {
-        setProjects(loadedProjects);
         localStorage.setItem('projects_cache', JSON.stringify(loadedProjects));
       }
       setLoading(false);
@@ -735,12 +734,6 @@ const Admin = () => {
     setFormData(project);
     setActiveTab('projects');
   };
-
-  if (projectsLoading || contactsLoading) return (
-    <div className="min-h-screen bg-[#0F1117] flex items-center justify-center font-mono text-[#61AFEF]">
-      LOADING_DATABASE_RECORDS...
-    </div>
-  );
 
   return (
     <div className="min-h-screen bg-[#0F1117] text-[#ABB2BF] p-4 md:p-8 font-mono">
