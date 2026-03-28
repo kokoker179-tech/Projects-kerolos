@@ -345,8 +345,8 @@ function ProjectCard({ project }: { project: Project }) {
                 </a>
               )}
               {project.liveLink && (
-                <a href={project.liveLink} target="_blank" rel="noopener noreferrer" className="flex-1 md:flex-none p-3 border border-[#ABB2BF]/10 text-[#ABB2BF] hover:bg-[#C678DD] hover:text-black hover:border-[#C678DD] transition-all rounded-xl flex items-center justify-center">
-                  <ExternalLink size={20} />
+                <a href={project.liveLink} target="_blank" rel="noopener noreferrer" className="flex-1 md:flex-none p-3 border border-[#ABB2BF]/10 text-[#ABB2BF] hover:bg-[#C678DD] hover:text-black hover:border-[#C678DD] transition-all rounded-xl flex items-center justify-center gap-2">
+                  <ExternalLink size={20} /> اضغط هنا للذهاب للموقع
                 </a>
               )}
             </div>
@@ -480,7 +480,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
       </main>
 
       {/* Footer */}
-      <footer className="relative z-10 p-8 md:p-12 border-t border-[#ABB2BF]/10 bg-[#0F1117]/90 backdrop-blur-md mt-auto w-full">
+      <footer className="relative z-10 p-12 md:p-16 border-t border-[#ABB2BF]/10 bg-[#0F1117]/90 backdrop-blur-md mt-auto w-full">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6 md:gap-8">
           <div className="space-y-1 text-center md:text-left">
             <p className="text-[9px] opacity-40 uppercase tracking-widest">
@@ -607,11 +607,11 @@ const Contact = () => {
             <div className="p-6 border border-[#ABB2BF]/10 bg-[#161B22]/40 rounded-lg space-y-4">
               <div className="space-y-1">
                 <h4 className="text-[10px] uppercase tracking-widest text-[#61AFEF]">Email</h4>
-                <p className="text-sm text-[#ECEFF4]">contact@kerolos.dev</p>
+                <p className="text-sm text-[#ECEFF4]">keiroloseditor@gmail.com</p>
               </div>
               <div className="space-y-1">
                 <h4 className="text-[10px] uppercase tracking-widest text-[#C678DD]">Location</h4>
-                <p className="text-sm text-[#ECEFF4]">Cairo, Egypt // Remote</p>
+                <p className="text-sm text-[#ECEFF4]">Cairo, Egypt</p>
               </div>
               <div className="space-y-1">
                 <h4 className="text-[10px] uppercase tracking-widest text-[#98C379]">Availability</h4>
