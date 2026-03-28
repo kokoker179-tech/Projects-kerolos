@@ -1,0 +1,51 @@
+{
+  "entities": {
+    "Project": {
+      "title": "Project",
+      "description": "A portfolio project entry.",
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string",
+          "description": "The title of the project."
+        },
+        "description": {
+          "type": "string",
+          "description": "A detailed description of the project."
+        },
+        "imageUrl": {
+          "type": "string",
+          "description": "Optional URL to an image representing the project."
+        },
+        "githubLink": {
+          "type": "string",
+          "description": "Optional link to the GitHub repository."
+        },
+        "liveLink": {
+          "type": "string",
+          "description": "Optional link to the live deployment."
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "List of technologies or tags associated with the project."
+        },
+        "createdAt": {
+          "type": "number",
+          "description": "Timestamp of when the project was created."
+        }
+      },
+      "required": ["title", "description", "createdAt"]
+    }
+  },
+  "firestore": {
+    "projects": {
+      "schema": {
+        "$ref": "#/entities/Project"
+      },
+      "description": "Collection of portfolio projects."
+    }
+  }
+}

@@ -1,0 +1,62 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    // Collection: projects
+    // Document ID: random string
+    // Fields:
+    //   - title: string (required, max 100 chars)
+    //   - description: string (required, max 5000 chars)
+    //   - imageUrl: string (optional, max 500 chars)
+    //   - githubLink: string (optional, max 500 chars)
+    //   - liveLink: string (optional, max 500 chars)
+    //   - tags: list of strings (optional, max 20 items, max 50 chars per item)
+    //   - createdAt: number (required)
+    // ===============================================================
+
+    // Helper Functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      // For this prototype, anyone logged in can act as admin since it's a shared portfolio for friends.
+      // In a real app, we would check a specific UID or a users collection.
+      return isAuthenticated(); 
+    }
+
+    function isValidString(text, minLen, maxLen) {
+      return text is string && text.size() >= minLen && text.size() <= maxLen;
+    }
+
+    function isValidOptionalString(field, maxLen) {
+      return !(field in request.resource.data) || 
+             (request.resource.data[field] is string && request.resource.data[field].size() <= maxLen);
+    }
+
+    function isValidTags(tags) {
+      return tags is list && tags.size() <= 20;
+    }
+
+    function isValidProject(data) {
+      return data.keys().hasAll(['title', 'description', 'createdAt']) &&
+             isValidString(data.title, 1, 100) &&
+             isValidString(data.description, 1, 5000) &&
+             data.createdAt is number &&
+             isValidOptionalString('imageUrl', 500) &&
+             isValidOptionalString('githubLink', 500) &&
+             isValidOptionalString('liveLink', 500) &&
+             (!('tags' in data) || isValidTags(data.tags));
+    }
+
+    match /projects/{projectId} {
+      // Public access as requested by the user
+      allow read: if true;
+      allow create: if isValidProject(request.resource.data);
+      allow update: if isValidProject(request.resource.data) && request.resource.data.createdAt == resource.data.createdAt;
+      allow delete: if true;
+    }
+  }
+}
