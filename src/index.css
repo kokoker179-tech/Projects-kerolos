@@ -64,7 +64,7 @@
   left: 0;
   z-index: 50;
   pointer-events: none;
-  animation: scanline 12s linear infinite;
+  animation: scanline 24s linear infinite;
 }
 
 @keyframes flicker {
