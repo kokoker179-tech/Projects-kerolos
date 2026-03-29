@@ -325,7 +325,7 @@ function ProjectCard({ project }: { project: Project }) {
                   </span>
                 )}
               </div>
-              <p className="text-sm md:text-base text-[#ABB2BF] mb-6 leading-relaxed max-w-3xl">{project.description}</p>
+              <p className="text-base md:text-lg text-[#ABB2BF] mb-6 leading-relaxed max-w-3xl whitespace-pre-wrap">{project.description}</p>
               
               {/* Code Snippet Element - Enhanced */}
               <div className="bg-[#0B0E14] p-5 rounded-xl border border-[#ABB2BF]/10 mb-6 font-mono text-[11px] md:text-xs shadow-inner flex gap-4 overflow-x-auto">
@@ -851,6 +851,10 @@ const Admin = () => {
                     onChange={e => {
                       const file = e.target.files?.[0];
                       if (file) {
+                        if (file.size > 500000) {
+                          toast.error('الصورة كبيرة جداً، يرجى اختيار صورة أصغر من 500 كيلوبايت');
+                          return;
+                        }
                         const reader = new FileReader();
                         reader.onloadend = () => {
                           setFormData({...formData, imageUrl: reader.result as string});
