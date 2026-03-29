@@ -800,8 +800,7 @@ const Admin = () => {
                         const url = e.target.value;
                         setFormData({
                           ...formData, 
-                          liveLink: url,
-                          imageUrl: url ? `https://image.thum.io/get/width/800/crop/600/${url}` : formData.imageUrl
+                          liveLink: url
                         });
                       }}
                     />
