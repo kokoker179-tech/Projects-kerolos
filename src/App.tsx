@@ -32,7 +32,7 @@ import { cn } from './lib/utils';
 import { db, auth, storage } from './firebase';
 import { collection, onSnapshot, doc, setDoc, deleteDoc, updateDoc, addDoc } from 'firebase/firestore';
 import { User as FirebaseUser } from 'firebase/auth';
-import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 // --- Error Handling Spec ---
 enum OperationType {
@@ -847,31 +847,14 @@ const Admin = () => {
                     onChange={async e => {
                       const file = e.target.files?.[0];
                       if (file) {
-                        const toastId = toast.loading('جاري رفع الصورة: 0%');
+                        const toastId = toast.loading('جاري رفع الصورة...');
                         try {
                           const storageRef = ref(storage, `projects/${Date.now()}_${file.name}`);
-                          const uploadTask = uploadBytesResumable(storageRef, file);
-                          
-                          uploadTask.on('state_changed',
-                            (snapshot) => {
-                              const progress = snapshot.totalBytes > 0 
-                                ? (snapshot.bytesTransferred / snapshot.totalBytes) * 100 
-                                : 0;
-                              console.log('Upload progress:', progress, 'Bytes:', snapshot.bytesTransferred, '/', snapshot.totalBytes);
-                              toast.loading(`جاري الرفع: ${Math.round(progress)}%`, { id: toastId });
-                            },
-                            (error) => {
-                              toast.dismiss(toastId);
-                              toast.error('حدث خطأ أثناء رفع الصورة');
-                              console.error('Detailed upload error:', error);
-                            },
-                            async () => {
-                              const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-                              setFormData({...formData, imageUrl: downloadURL});
-                              toast.dismiss(toastId);
-                              toast.success('تم رفع الصورة بنجاح!');
-                            }
-                          );
+                          await uploadBytes(storageRef, file);
+                          const downloadURL = await getDownloadURL(storageRef);
+                          setFormData({...formData, imageUrl: downloadURL});
+                          toast.dismiss(toastId);
+                          toast.success('تم رفع الصورة بنجاح!');
                         } catch (error) {
                           toast.dismiss(toastId);
                           toast.error('حدث خطأ أثناء رفع الصورة');
