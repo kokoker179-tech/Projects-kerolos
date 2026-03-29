@@ -851,10 +851,6 @@ const Admin = () => {
                     onChange={async e => {
                       const file = e.target.files?.[0];
                       if (file) {
-                        if (!auth.currentUser) {
-                          toast.error('يجب تسجيل الدخول لرفع الصورة');
-                          return;
-                        }
                         toast.loading('جاري رفع الصورة...');
                         try {
                           console.log('Starting upload for file:', file.name);
