@@ -847,16 +847,13 @@ const Admin = () => {
                     onChange={async e => {
                       const file = e.target.files?.[0];
                       if (file) {
-                        const toastId = toast.loading('جاري رفع الصورة...');
                         try {
                           const storageRef = ref(storage, `projects/${Date.now()}_${file.name}`);
                           await uploadBytes(storageRef, file);
                           const downloadURL = await getDownloadURL(storageRef);
                           setFormData({...formData, imageUrl: downloadURL});
-                          toast.dismiss(toastId);
                           toast.success('تم رفع الصورة بنجاح!');
                         } catch (error) {
-                          toast.dismiss(toastId);
                           toast.error('حدث خطأ أثناء رفع الصورة');
                           console.error('Detailed upload error:', error);
                         }
