@@ -29,9 +29,10 @@ import {
   Instagram
 } from 'lucide-react';
 import { cn } from './lib/utils';
-import { db, auth } from './firebase';
+import { db, auth, storage } from './firebase';
 import { collection, onSnapshot, doc, setDoc, deleteDoc, updateDoc, addDoc } from 'firebase/firestore';
 import { User as FirebaseUser } from 'firebase/auth';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 // --- Error Handling Spec ---
 enum OperationType {
@@ -848,18 +849,22 @@ const Admin = () => {
                     type="file" 
                     accept="image/png, image/jpeg"
                     className="w-full bg-[#0F1117]/50 border border-[#ABB2BF]/20 rounded p-3 focus:border-[#61AFEF] outline-none transition-colors text-sm file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-xs file:font-bold file:bg-[#61AFEF] file:text-black hover:file:bg-[#61AFEF]/90"
-                    onChange={e => {
+                    onChange={async e => {
                       const file = e.target.files?.[0];
                       if (file) {
-                        if (file.size > 500000) {
-                          toast.error('الصورة كبيرة جداً، يرجى اختيار صورة أصغر من 500 كيلوبايت');
-                          return;
+                        toast.loading('جاري رفع الصورة...');
+                        try {
+                          const storageRef = ref(storage, `projects/${Date.now()}_${file.name}`);
+                          await uploadBytes(storageRef, file);
+                          const downloadURL = await getDownloadURL(storageRef);
+                          setFormData({...formData, imageUrl: downloadURL});
+                          toast.dismiss();
+                          toast.success('تم رفع الصورة بنجاح!');
+                        } catch (error) {
+                          toast.dismiss();
+                          toast.error('حدث خطأ أثناء رفع الصورة');
+                          console.error(error);
                         }
-                        const reader = new FileReader();
-                        reader.onloadend = () => {
-                          setFormData({...formData, imageUrl: reader.result as string});
-                        };
-                        reader.readAsDataURL(file);
                       }
                     }}
                   />
