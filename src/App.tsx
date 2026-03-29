@@ -853,7 +853,7 @@ const Admin = () => {
                           const storageRef = ref(storage, `projects/${Date.now()}_${file.name}`);
                           await uploadBytes(storageRef, file);
                           const downloadURL = await getDownloadURL(storageRef);
-                          setFormData({...formData, imageUrl: downloadURL});
+                          setFormData(prev => ({...prev, imageUrl: downloadURL}));
                           toast.success('تم رفع الصورة بنجاح!');
                         } catch (error) {
                           toast.error('حدث خطأ أثناء رفع الصورة');
