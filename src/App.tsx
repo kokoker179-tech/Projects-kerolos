@@ -32,7 +32,7 @@ import { cn } from './lib/utils';
 import { db, auth, storage } from './firebase';
 import { collection, onSnapshot, doc, setDoc, deleteDoc, updateDoc, addDoc } from 'firebase/firestore';
 import { User as FirebaseUser } from 'firebase/auth';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 
 // --- Error Handling Spec ---
 enum OperationType {
@@ -298,14 +298,10 @@ function ProjectCard({ project }: { project: Project }) {
                 <img 
                   src={project.imageUrl} 
                   alt={project.title} 
-                  className="w-full h-full object-cover opacity-0 transition-opacity duration-500 group-hover:opacity-100" 
+                  className="w-full h-full object-cover opacity-80" 
                   referrerPolicy="no-referrer" 
                   loading="eager"
                   decoding="async"
-                  onLoad={(e) => {
-                    e.currentTarget.classList.remove('opacity-0');
-                    e.currentTarget.classList.add('opacity-80');
-                  }}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#0B0E14] to-transparent opacity-70"></div>
                 <div className="absolute bottom-3 left-3 bg-[#0B0E14]/80 backdrop-blur-sm p-2 rounded-lg border border-[#ABB2BF]/10">
@@ -851,20 +847,30 @@ const Admin = () => {
                     onChange={async e => {
                       const file = e.target.files?.[0];
                       if (file) {
-                        toast.loading('جاري رفع الصورة...');
+                        const toastId = toast.loading('جاري رفع الصورة: 0%');
                         try {
-                          console.log('Starting upload for file:', file.name);
                           const storageRef = ref(storage, `projects/${Date.now()}_${file.name}`);
-                          console.log('Storage ref created:', storageRef.fullPath);
-                          await uploadBytes(storageRef, file);
-                          console.log('Upload bytes complete');
-                          const downloadURL = await getDownloadURL(storageRef);
-                          console.log('Download URL obtained:', downloadURL);
-                          setFormData({...formData, imageUrl: downloadURL});
-                          toast.dismiss();
-                          toast.success('تم رفع الصورة بنجاح!');
+                          const uploadTask = uploadBytesResumable(storageRef, file);
+                          
+                          uploadTask.on('state_changed',
+                            (snapshot) => {
+                              const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                              toast.loading(`جاري الرفع: ${Math.round(progress)}%`, { id: toastId });
+                            },
+                            (error) => {
+                              toast.dismiss(toastId);
+                              toast.error('حدث خطأ أثناء رفع الصورة');
+                              console.error('Detailed upload error:', error);
+                            },
+                            async () => {
+                              const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+                              setFormData({...formData, imageUrl: downloadURL});
+                              toast.dismiss(toastId);
+                              toast.success('تم رفع الصورة بنجاح!');
+                            }
+                          );
                         } catch (error) {
-                          toast.dismiss();
+                          toast.dismiss(toastId);
                           toast.error('حدث خطأ أثناء رفع الصورة');
                           console.error('Detailed upload error:', error);
                         }
