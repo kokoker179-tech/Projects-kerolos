@@ -854,16 +854,20 @@ const Admin = () => {
                       if (file) {
                         toast.loading('جاري رفع الصورة...');
                         try {
+                          console.log('Starting upload for file:', file.name);
                           const storageRef = ref(storage, `projects/${Date.now()}_${file.name}`);
+                          console.log('Storage ref created:', storageRef.fullPath);
                           await uploadBytes(storageRef, file);
+                          console.log('Upload bytes complete');
                           const downloadURL = await getDownloadURL(storageRef);
+                          console.log('Download URL obtained:', downloadURL);
                           setFormData({...formData, imageUrl: downloadURL});
                           toast.dismiss();
                           toast.success('تم رفع الصورة بنجاح!');
                         } catch (error) {
                           toast.dismiss();
                           toast.error('حدث خطأ أثناء رفع الصورة');
-                          console.error(error);
+                          console.error('Detailed upload error:', error);
                         }
                       }
                     }}
