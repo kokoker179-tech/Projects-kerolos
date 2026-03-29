@@ -709,11 +709,12 @@ const Admin = () => {
     status: 'STABLE',
     color: '#61AFEF'
   });
+  const [isUploading, setIsUploading] = useState(false);
   const [tagInput, setTagInput] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.title || !formData.description) return;
+    if (!formData.title || !formData.description || isUploading) return;
 
     const projectData = { ...formData };
 
@@ -850,6 +851,7 @@ const Admin = () => {
                       const file = e.target.files?.[0];
                       if (file) {
                         try {
+                          setIsUploading(true);
                           const storageRef = ref(storage, `projects/${Date.now()}_${file.name}`);
                           await uploadBytes(storageRef, file);
                           const downloadURL = await getDownloadURL(storageRef);
@@ -858,6 +860,8 @@ const Admin = () => {
                         } catch (error) {
                           toast.error('حدث خطأ أثناء رفع الصورة');
                           console.error('Detailed upload error:', error);
+                        } finally {
+                          setIsUploading(false);
                         }
                       }
                     }}
@@ -894,8 +898,8 @@ const Admin = () => {
                 </div>
 
                 <div className="flex flex-col sm:flex-row gap-4 pt-4">
-                  <button type="submit" className="flex-1 bg-[#61AFEF] text-black py-3 rounded font-bold hover:bg-[#61AFEF]/90 transition-all flex items-center justify-center gap-2">
-                    <Save size={18} /> {isEditing ? 'UPDATE_RECORD' : 'COMMIT_CHANGES'}
+                  <button type="submit" disabled={isUploading} className="flex-1 bg-[#61AFEF] text-black py-3 rounded font-bold hover:bg-[#61AFEF]/90 transition-all flex items-center justify-center gap-2">
+                    <Save size={18} /> {isUploading ? 'جاري الرفع...' : (isEditing ? 'UPDATE_RECORD' : 'COMMIT_CHANGES')}
                   </button>
                   {isEditing && (
                     <button 
