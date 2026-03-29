@@ -852,14 +852,19 @@ const Admin = () => {
                       if (file) {
                         try {
                           setIsUploading(true);
+                          console.log('Starting upload for:', file.name, 'Size:', file.size);
                           const storageRef = ref(storage, `projects/${Date.now()}_${file.name}`);
-                          await uploadBytes(storageRef, file);
+                          const snapshot = await uploadBytes(storageRef, file);
+                          console.log('Upload completed, bytes transferred:', snapshot.bytesTransferred);
                           const downloadURL = await getDownloadURL(storageRef);
                           setFormData(prev => ({...prev, imageUrl: downloadURL}));
                           toast.success('تم رفع الصورة بنجاح!');
                         } catch (error) {
                           toast.error('حدث خطأ أثناء رفع الصورة');
                           console.error('Detailed upload error:', error);
+                          if (error instanceof Error) {
+                            console.error('Error message:', error.message);
+                          }
                         } finally {
                           setIsUploading(false);
                         }
