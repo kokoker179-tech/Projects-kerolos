@@ -709,28 +709,13 @@ const Admin = () => {
     status: 'STABLE',
     color: '#61AFEF'
   });
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [tagInput, setTagInput] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.title || !formData.description) return;
 
-    let imageUrl = formData.imageUrl;
-
-    if (selectedFile) {
-      try {
-        const storageRef = ref(storage, `projects/${Date.now()}_${selectedFile.name}`);
-        await uploadBytes(storageRef, selectedFile);
-        imageUrl = await getDownloadURL(storageRef);
-      } catch (error) {
-        toast.error('حدث خطأ أثناء رفع الصورة');
-        console.error('Detailed upload error:', error);
-        return;
-      }
-    }
-
-    const projectData = { ...formData, imageUrl };
+    const projectData = { ...formData };
 
     if (isEditing) {
       await updateProject(isEditing, projectData);
@@ -741,7 +726,6 @@ const Admin = () => {
       toast.success('تم إضافة المشروع بنجاح!');
     }
     setFormData({ title: '', description: '', githubLink: '', liveLink: '', imageUrl: '', duration: '', tags: [], status: 'STABLE', color: '#61AFEF' });
-    setSelectedFile(null);
   };
 
   const handleEdit = (project: Project) => {
@@ -862,10 +846,19 @@ const Admin = () => {
                     type="file" 
                     accept="image/png, image/jpeg"
                     className="w-full bg-[#0F1117]/50 border border-[#ABB2BF]/20 rounded p-3 focus:border-[#61AFEF] outline-none transition-colors text-sm file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-xs file:font-bold file:bg-[#61AFEF] file:text-black hover:file:bg-[#61AFEF]/90"
-                    onChange={e => {
+                    onChange={async e => {
                       const file = e.target.files?.[0];
                       if (file) {
-                        setSelectedFile(file);
+                        try {
+                          const storageRef = ref(storage, `projects/${Date.now()}_${file.name}`);
+                          await uploadBytes(storageRef, file);
+                          const downloadURL = await getDownloadURL(storageRef);
+                          setFormData({...formData, imageUrl: downloadURL});
+                          toast.success('تم رفع الصورة بنجاح!');
+                        } catch (error) {
+                          toast.error('حدث خطأ أثناء رفع الصورة');
+                          console.error('Detailed upload error:', error);
+                        }
                       }
                     }}
                   />
