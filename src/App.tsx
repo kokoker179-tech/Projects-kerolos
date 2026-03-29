@@ -855,6 +855,7 @@ const Admin = () => {
                           uploadTask.on('state_changed',
                             (snapshot) => {
                               const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                              console.log('Upload progress:', progress);
                               toast.loading(`جاري الرفع: ${Math.round(progress)}%`, { id: toastId });
                             },
                             (error) => {
