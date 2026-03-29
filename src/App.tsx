@@ -32,7 +32,7 @@ import { cn } from './lib/utils';
 import { db, auth, storage } from './firebase';
 import { collection, onSnapshot, doc, setDoc, deleteDoc, updateDoc, addDoc } from 'firebase/firestore';
 import { User as FirebaseUser } from 'firebase/auth';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 
 // --- Error Handling Spec ---
 enum OperationType {
@@ -854,18 +854,28 @@ const Admin = () => {
                           setIsUploading(true);
                           console.log('Starting upload for:', file.name, 'Size:', file.size);
                           const storageRef = ref(storage, `projects/${Date.now()}_${file.name}`);
-                          const snapshot = await uploadBytes(storageRef, file);
-                          console.log('Upload completed, bytes transferred:', snapshot.bytesTransferred);
-                          const downloadURL = await getDownloadURL(storageRef);
-                          setFormData(prev => ({...prev, imageUrl: downloadURL}));
-                          toast.success('تم رفع الصورة بنجاح!');
+                          const uploadTask = uploadBytesResumable(storageRef, file);
+                          
+                          uploadTask.on('state_changed', 
+                            (snapshot) => {
+                              const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                              console.log('Upload is ' + progress + '% done');
+                            }, 
+                            (error) => {
+                              toast.error('حدث خطأ أثناء رفع الصورة');
+                              console.error('Detailed upload error:', error);
+                              setIsUploading(false);
+                            }, 
+                            async () => {
+                              const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+                              setFormData(prev => ({...prev, imageUrl: downloadURL}));
+                              toast.success('تم رفع الصورة بنجاح!');
+                              setIsUploading(false);
+                            }
+                          );
                         } catch (error) {
                           toast.error('حدث خطأ أثناء رفع الصورة');
                           console.error('Detailed upload error:', error);
-                          if (error instanceof Error) {
-                            console.error('Error message:', error.message);
-                          }
-                        } finally {
                           setIsUploading(false);
                         }
                       }
