@@ -11,7 +11,7 @@ const app = initializeApp(firebaseConfig);
 export const db = initializeFirestore(app, {}, firebaseConfig.firestoreDatabaseId);
 
 export const auth = getAuth(app);
-export const storage = getStorage(app);
+export const storage = getStorage(app, "gs://gen-lang-client-0152329917.firebasestorage.app");
 
 export const signInWithGoogle = async () => {
   const provider = new GoogleAuthProvider();
