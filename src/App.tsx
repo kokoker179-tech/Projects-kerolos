@@ -710,6 +710,7 @@ const Admin = () => {
     color: '#61AFEF'
   });
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [tagInput, setTagInput] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -852,6 +853,7 @@ const Admin = () => {
                       if (file) {
                         try {
                           setIsUploading(true);
+                          setUploadProgress(0);
                           console.log('Starting upload for:', file.name, 'Size:', file.size);
                           const storageRef = ref(storage, `projects/${Date.now()}_${file.name}`);
                           const uploadTask = uploadBytesResumable(storageRef, file);
@@ -859,18 +861,21 @@ const Admin = () => {
                           uploadTask.on('state_changed', 
                             (snapshot) => {
                               const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                              setUploadProgress(Math.round(progress));
                               console.log('Upload is ' + progress + '% done');
                             }, 
                             (error) => {
                               toast.error('حدث خطأ أثناء رفع الصورة');
                               console.error('Detailed upload error:', error);
                               setIsUploading(false);
+                              setUploadProgress(0);
                             }, 
                             async () => {
                               const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
                               setFormData(prev => ({...prev, imageUrl: downloadURL}));
                               toast.success('تم رفع الصورة بنجاح!');
                               setIsUploading(false);
+                              setUploadProgress(0);
                             }
                           );
                         } catch (error) {
@@ -881,6 +886,11 @@ const Admin = () => {
                       }
                     }}
                   />
+                  {isUploading && (
+                    <div className="w-full bg-[#0F1117]/50 rounded h-2 mt-2 overflow-hidden">
+                      <div className="bg-[#61AFEF] h-full transition-all duration-300" style={{ width: `${uploadProgress}%` }}></div>
+                    </div>
+                  )}
                 </div>
                 
                 <div className="space-y-3">
